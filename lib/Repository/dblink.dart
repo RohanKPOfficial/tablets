@@ -3,7 +3,7 @@ import 'package:path/path.dart' as Path;
 import 'package:tablets/Models/Medicine.dart';
 
 class DatabaseLink {
-  static var dbInstance;
+  var dbInstance;
   static late DatabaseLink link;
   DatabaseLink() {
     link = this;

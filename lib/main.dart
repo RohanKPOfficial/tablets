@@ -19,6 +19,9 @@ import 'package:tablets/Components/AppBodyUI.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  //initialise Platform Notification Service
+  initNotificationService();
+
   //initialize DbLinks
   var singletonLink = DatabaseLink();
   await singletonLink.InitDB();
@@ -134,127 +137,178 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       backgroundColor: Colors.greenAccent.shade400,
       body: AppBodyBuilder(context),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          String dropdownValue = 'Daily';
-          late Medicine selectedMedicine;
-          int numReminders = 1;
-          late Widget dropDownUi =
-              ReminderUiBuilder(dropdownValue, numReminders);
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: () async {
+              String dropdownValue = 'Daily';
+              late Medicine selectedMedicine;
+              int numReminders = 1;
+              late Widget dropDownUi =
+                  ReminderUiBuilder(dropdownValue, numReminders);
 
-          List<Medicine> meds = await DatabaseLink.link.getMedicines();
-          selectedMedicine = meds[0];
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Create a Dosage Reminder'),
-                  content:
-                      StatefulBuilder(builder: (context, StateSetter setState) {
-                    return Container(
-                      child: Column(
-                        children: [
-                          DropdownButtonFormField<String>(
-                            value: selectedMedicine.Name,
-                            icon: const Icon(Icons.arrow_drop_down),
-                            elevation: 16,
-                            style: const TextStyle(color: Colors.deepPurple),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                selectedMedicine = meds.firstWhere(
-                                    (element) => element.Name == newValue);
-                                // dropdownValue = newValue!;
-                              });
-                            },
-                            items: meds.map<DropdownMenuItem<String>>(
-                                (Medicine value) {
-                              return DropdownMenuItem<String>(
-                                value: value.Name,
-                                child: Text(value.Name),
-                              );
-                            }).toList(),
+              List<Medicine> meds = await DatabaseLink.link.getMedicines();
+              if (meds.length == 1) {
+                print('was empty');
+                DatabaseLink.link
+                    .InsertMedicine(Medicine('Crocin 650', Medtype.Tablets));
+                meds = await DatabaseLink.link.getMedicines();
+              }
+              selectedMedicine = meds[0];
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Create a Dosage Reminder'),
+                      content: StatefulBuilder(
+                          builder: (context, StateSetter setState) {
+                        return Container(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 8.0, top: 10, bottom: 1, right: 8),
+                                child: Text(
+                                  'Medicine',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              DropdownButtonFormField<String>(
+                                value: selectedMedicine.Name,
+                                icon: const Icon(Icons.arrow_drop_down),
+                                elevation: 16,
+                                style:
+                                    const TextStyle(color: Colors.deepPurple),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedMedicine = meds.firstWhere(
+                                        (element) => element.Name == newValue);
+                                    // dropdownValue = newValue!;
+                                  });
+                                },
+                                items: meds.map<DropdownMenuItem<String>>(
+                                    (Medicine value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value.Name,
+                                    child: Text(value.Name),
+                                  );
+                                }).toList(),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 8.0, top: 10, bottom: 1, right: 8),
+                                child: Text(
+                                  'Dosage',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Text('5'),
+                                    Text('${Shorten(selectedMedicine.Type)}'),
+                                    TextButton(
+                                        style: ElevatedButton.styleFrom(
+                                            shape: CircleBorder(),
+                                            primary: Colors.grey.shade100),
+                                        child: Icon(Icons.remove),
+                                        onPressed: () {}),
+                                    TextButton(
+                                        style: ElevatedButton.styleFrom(
+                                            shape: CircleBorder(),
+                                            primary: Colors.grey.shade100),
+                                        child: Icon(Icons.add),
+                                        onPressed: () {}),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 8.0, top: 10, bottom: 1, right: 8),
+                                child: Text(
+                                  'Schedule',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              DropdownButtonFormField<String>(
+                                value: dropdownValue,
+                                icon: const Icon(Icons.arrow_drop_down),
+                                elevation: 16,
+                                style:
+                                    const TextStyle(color: Colors.deepPurple),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    dropdownValue = newValue!;
+                                    dropDownUi = ReminderUiBuilder(
+                                        dropdownValue, numReminders);
+                                  });
+                                },
+                                items: <String>[
+                                  'Daily',
+                                  'Weekly',
+                                  'Monthly'
+                                ].map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                              ),
+                              dropDownUi,
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Text('Dose'),
-                                Text('5'),
-                                Text('${Shorten(selectedMedicine.Type)}'),
-                                TextButton(
-                                    style: ElevatedButton.styleFrom(
-                                        shape: CircleBorder(),
-                                        primary: Colors.grey.shade100),
-                                    child: Icon(Icons.remove),
-                                    onPressed: () {}),
-                                TextButton(
-                                    style: ElevatedButton.styleFrom(
-                                        shape: CircleBorder(),
-                                        primary: Colors.grey.shade100),
-                                    child: Icon(Icons.add),
-                                    onPressed: () {}),
-                              ],
+                        );
+                      }),
+                      actions: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              height: getHeightByFactor(context, 0.05),
+                              width: getWidthByFactor(context, 0.35),
+                              child: TextButton(
+                                child: Text('Set Reminder'),
+                                onPressed: () {
+                                  scheduleDailyNotification(
+                                      selectedMedicine,
+                                      "2 ${selectedMedicine.Type.name}",
+                                      DateTime.now().add(Duration(minutes: 1)));
+                                  // AddReminder('${selectedMedicine.Name}',
+                                  //     '2 ${selectedMedicine.Type.name}');
+                                },
+                              ),
                             ),
-                          ),
-                          DropdownButtonFormField<String>(
-                            value: dropdownValue,
-                            icon: const Icon(Icons.arrow_drop_down),
-                            elevation: 16,
-                            style: const TextStyle(color: Colors.deepPurple),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                dropdownValue = newValue!;
-                                dropDownUi = ReminderUiBuilder(
-                                    dropdownValue, numReminders);
-                              });
-                            },
-                            items: <String>['Daily', 'Weekly', 'Monthly']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
-                          dropDownUi,
-                        ],
-                      ),
-                    );
-                  }),
-                  actions: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          height: getHeightByFactor(context, 0.05),
-                          width: getWidthByFactor(context, 0.35),
-                          child: TextButton(
-                            child: Text('Set Reminder'),
-                            onPressed: () {
-                              AddReminder('Paracetamol', '2Tab;lets');
-                            },
-                          ),
-                        ),
-                        Container(
-                          width: getWidthByFactor(context, 0.35),
-                          height: getHeightByFactor(context, 0.05),
-                          child: TextButton(
-                            child: Text('Cancel'),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
+                            Container(
+                              width: getWidthByFactor(context, 0.35),
+                              height: getHeightByFactor(context, 0.05),
+                              child: TextButton(
+                                child: Text('Cancel'),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
-                );
-              });
-          // newNOtfy();
-        },
-        tooltip: 'Add Dosage Reminder',
-        child: const Icon(Icons.add),
+                    );
+                  });
+              // newNOtfy();
+            },
+            tooltip: 'Add Dosage Reminder',
+            child: const Icon(Icons.add),
+          ),
+          FloatingActionButton(
+            onPressed: () {
+              CancelAllSchedules();
+            },
+            child: Icon(Icons.delete_forever),
+          )
+        ],
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

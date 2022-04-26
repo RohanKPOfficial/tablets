@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:tablets/Models/Medicine.dart';
 
 void initNotificationService() {
   AwesomeNotifications().initialize(
@@ -36,25 +37,27 @@ void initNotificationService() {
   });
 }
 
-void newNOtfy() async {
+void scheduleDailyNotification(
+    Medicine medicine, String Dosage, DateTime time) async {
   String localTimeZone =
       await AwesomeNotifications().getLocalTimeZoneIdentifier();
   String utcTimeZone =
       await AwesomeNotifications().getLocalTimeZoneIdentifier();
+  print("notification scheduled at ${time.hour} ${time.minute}");
   AwesomeNotifications().createNotification(
       content: NotificationContent(
           // customSound: 'resource://raw/tone',
           id: DateTime.now().millisecond.hashCode,
           channelKey: 'ch2',
           title: 'Time to take your Medicines',
-          body: 'Medicine Names'),
+          body: '${medicine.Name} ${Dosage}'),
       schedule: NotificationCalendar(
           repeats: true,
-          month: DateTime.now().month,
-          weekday: DateTime.now().weekday,
-          day: DateTime.now().day,
-          hour: DateTime.now().hour,
-          millisecond: 0,
+          // month: DateTime.now().month,
+          // weekday: DateTime.now().weekday,
+          // day: DateTime.now().day,
+          hour: time.hour,
+          // minute: time.minute,
           second: 0)
       // Future.delayed(Duration(seconds: 3), () {
       //   newNOtfy();
@@ -86,4 +89,8 @@ void AddReminder(String medName, String Dosage) async {
       //   newNOtfy();
       //}
       );
+}
+
+void CancelAllSchedules() {
+  AwesomeNotifications().cancelAllSchedules();
 }
