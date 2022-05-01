@@ -1,6 +1,10 @@
 library tablets;
 
-class Medicine {
+import 'dart:convert';
+
+import '../Repository/DBInterfacer.dart';
+
+class Medicine implements DBSerialiser {
   late String Name;
   late Medtype Type;
 
@@ -9,11 +13,18 @@ class Medicine {
     Type = type;
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       'Name': Name,
       'Type': Type.name,
     };
+  }
+
+  @override
+  static toObject(String jsonString) {
+    var decoded = json.decode(jsonString.substring(1, jsonString.length - 1));
+    return Medicine(decoded['Name'], isMedType(decoded['Type']));
   }
 }
 
@@ -27,24 +38,23 @@ String Shorten(Medtype type) {
   switch (type) {
     case Medtype.Tablets:
       return 'Tab';
-      break;
+
     case Medtype.Capsules:
       return 'Cap';
-      break;
+
     case Medtype.ml_Syrup:
       return 'ml';
-      break;
+
     case Medtype.Units:
       return 'Units';
-      break;
+
     case Medtype.Pumps:
       return 'Pumps';
-      break;
+
     case Medtype.Topical_Smear:
       return 'Smear';
-      break;
+
     default:
       return 'Other';
-      break;
   }
 }

@@ -1,8 +1,11 @@
 import 'dart:ui';
-
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:tablets/Models/Medicine.dart';
+import 'package:tablets/Models/inventoryItem.dart';
+import 'package:tablets/Models/reminderList.dart';
+
+import 'dblink.dart';
 
 void initNotificationService() {
   AwesomeNotifications().initialize(
@@ -38,12 +41,12 @@ void initNotificationService() {
 }
 
 void scheduleDailyNotification(
-    Medicine medicine, String Dosage, DateTime time) async {
-  String localTimeZone =
-      await AwesomeNotifications().getLocalTimeZoneIdentifier();
-  String utcTimeZone =
-      await AwesomeNotifications().getLocalTimeZoneIdentifier();
-  print("notification scheduled at ${time.hour} ${time.minute}");
+    Medicine medicine, String Dosage, int hour, int minute) async {
+  // String localTimeZone =
+  //     await AwesomeNotifications().getLocalTimeZoneIdentifier();
+  // String utcTimeZone =
+  //     await AwesomeNotifications().getLocalTimeZoneIdentifier();
+  print("notification scheduled at ${hour} ${minute}");
   AwesomeNotifications().createNotification(
       content: NotificationContent(
           // customSound: 'resource://raw/tone',
@@ -56,13 +59,32 @@ void scheduleDailyNotification(
           // month: DateTime.now().month,
           // weekday: DateTime.now().weekday,
           // day: DateTime.now().day,
-          hour: time.hour,
-          // minute: time.minute,
+          hour: hour,
+          minute: minute,
           second: 0)
       // Future.delayed(Duration(seconds: 3), () {
       //   newNOtfy();
       //}
       );
+}
+
+void bulkScheduleDailyNotification(
+    ScheduleList list, Medicine medicine, String Dosage) async {
+  // List<InventoryItem> a = await DatabaseLink.link.getInventoryItems();
+  InventoryItem i = await DatabaseLink.getInventoryByMedicine(medicine);
+  List<Schedule> getList = i.slist.scheduleList;
+  list.scheduleList.forEach((element) {
+    getList.add(element);
+  });
+  i.dumpSchedule(ScheduleList(getList));
+  await DatabaseLink.link.UpdateInventoryItem(i, medicine);
+
+  for (Schedule s in list.scheduleList) {
+    scheduleDailyNotification(i.medicine, Dosage, s.hour, s.minute);
+  }
+  InventoryItem inew = await DatabaseLink.getInventoryByMedicine(medicine);
+  print('new schedule');
+  print(inew.toMap());
 }
 
 void AddReminder(String medName, String Dosage) async {
