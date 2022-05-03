@@ -14,10 +14,16 @@ class InventoryRecon extends ChangeNotifier {
 
   void update() async {
     currentInventory = await DatabaseLink.link.getInventoryItems();
+    currentInventory.sort((InventoryItem i1, InventoryItem i2) {
+      return i1.medicine.Name.compareTo(i2.medicine.Name);
+    });
     notifyListeners();
   }
 
   List<InventoryItem> getInventory() {
+    currentInventory.sort((InventoryItem i1, InventoryItem i2) {
+      return i1.medicine.Name.compareTo(i2.medicine.Name);
+    });
     return currentInventory;
   }
 }

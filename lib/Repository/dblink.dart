@@ -42,6 +42,37 @@ class DatabaseLink {
     return initCode;
   }
 
+  Future<int> initNewDB() async {
+    int initCode = 0;
+    dbInstance = await openDatabase(
+      // Set the path to the database. Note: Using the `join` function from the
+      // `path` package is best practice to ensure the path is correctly
+      // constructed for each platform.
+      Path.join(await getDatabasesPath(), 'tablets_database_4.db'),
+
+      onCreate: (db, version) async {
+// Run the CREATE TABLE statement on the database.
+        await (db.execute('PRAGMA foreign_keys = ON'));
+        await db.execute(
+          'CREATE TABLE Medicines(Id INTEGER PRIMARY KEY AUTOINCREMENT,Name TEXT , Type VARCHAR);',
+        );
+        await db.execute(
+          'CREATE TABLE Inventory(Id INTEGER PRIMARY KEY AUTOINCREMENT,MedId INTEGER,medStock TEXT ,FOREIGN KEY (MedId) REFERENCES Medicines(Id) ON DELETE CASCADE ON UPDATE NO ACTION);',
+        );
+
+        await db.execute(
+            'CREATE TABLE Schedules(Id INTEGER PRIMARY KEY AUTOINCREMENT,InvId INTEGER ,date INTEGER ,day INTEGER,hour INTEGER,minute INTEGER , FOREIGN KEY (InvId) REFERENCES Inventory(Id) ON DELETE CASCADE ON UPDATE NO ACTION);');
+
+        // ,CONSTRAINT fk_Medicines FOREIGN KEY (Name) REFERENCES Medicines(Name)'
+        // db.execute(
+        //     '');
+      },
+      version: 1,
+    ).whenComplete(() => initCode = 1);
+
+    return initCode;
+  }
+
   void InsertMedicine(Medicine med) async {
     var db = await dbInstance;
 
@@ -88,6 +119,8 @@ class DatabaseLink {
     return 0;
   }
 
+  void putTodoSchedule() {}
+
   void InsertInventoryItem(InventoryItem i) async {
     this.InsertMedicine(i.medicine);
 
@@ -112,6 +145,19 @@ class DatabaseLink {
   void deleteInventoryItem(InventoryItem i) async {
     var db = await dbInstance;
     db.delete('Inventory', where: 'medicine=${i.medicine.toMap()}');
+  }
+
+  static Future<int> ConsumeMedicine(Medicine med, double units) async {
+    InventoryItem i = await DatabaseLink.getInventoryByMedicine(med);
+    if (i.medStock >= units) {
+      i.medStock = i.medStock - units;
+      print('consumed ${units} units new stcok ${i.medStock}');
+    } else {
+      return 0;
+    }
+    await DatabaseLink.link.UpdateInventoryItem(i, med);
+    InventoryRecon.instance.update();
+    return 1;
   }
 
   static Future<InventoryItem> getInventoryByMedicine(Medicine med) async {

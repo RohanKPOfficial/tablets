@@ -15,12 +15,13 @@ void initNotificationService() {
       [
         NotificationChannel(
             channelGroupKey: 'basic_channel_group',
-            channelKey: 'ch2',
+            channelKey: 'AlertTone1',
             channelName: 'Dosage Reminders',
             channelDescription: 'Scheduled Reminders for your medication',
             defaultColor: Color(0xFF9D50DD),
             ledColor: Colors.white,
             playSound: true,
+            locked: true,
             soundSource: 'resource://raw/tone'),
       ],
       // Channel groups are only visual and are not required
@@ -31,29 +32,134 @@ void initNotificationService() {
       ],
       debug: true);
 
-  AwesomeNotifications()
-      .actionStream
-      .listen((ReceivedNotification receivedNotification) {
-    if (receivedNotification != null) {
-      print("Notification clicked and intercepted");
+  AwesomeNotifications().actionStream.listen((action) async {
+    if (action != null) {
+      if (action.buttonKeyPressed == "MarkTaken") {
+        Map<String, String> receivedPayload = action.payload!;
+
+        String medName = receivedPayload["MedicineName"].toString();
+        String medType = receivedPayload["MedicineType"].toString();
+        double Dosage = (double.parse(receivedPayload["Dosage"].toString()));
+        Medicine med = Medicine(medName, isMedType(medType));
+
+        int _success = await DatabaseLink.ConsumeMedicine(med, Dosage);
+        if (_success == 1) {
+          print("MarkTaken");
+          AwesomeNotifications().dismiss(action.id!);
+        } else {
+          print("Unable to consume");
+        }
+      } else if (action.buttonKeyPressed == "Snooze") {
+        print("Snoozed");
+        Snooze10min(action);
+        AwesomeNotifications().dismiss(action.id!);
+      }
     }
   });
 }
 
-void scheduleDailyNotification(
+void ScheduleImmediateNotif(Medicine medicine, String Dosage) async {
+  print("notification scheduled immediate");
+  AwesomeNotifications().createNotification(
+      content: NotificationContent(
+          payload: {
+            "MedicineName": "${medicine.Name}",
+            "MedicineType": "${medicine.Type.name}",
+            "Dosage": "$Dosage"
+          },
+          autoDismissible: false,
+          // customSound: 'resource://raw/tone',
+          id: DateTime.now().millisecond.hashCode,
+          channelKey: 'AlertTone1',
+          title: 'Time to take your Medicines',
+          body: '${medicine.Name} ${Dosage} ${medicine.Type.name}'),
+      actionButtons: [
+        NotificationActionButton(
+            key: 'MarkTaken',
+            label: 'MarkTaken',
+            autoDismissible: false,
+            buttonType: ActionButtonType.KeepOnTop),
+        NotificationActionButton(
+            key: 'Snooze', label: 'Snooze 10min', autoDismissible: false)
+      ],
+      schedule: NotificationCalendar(
+          repeats: false,
+          month: DateTime.now().month,
+          weekday: DateTime.now().weekday,
+          day: DateTime.now().day,
+          hour: DateTime.now().hour,
+          minute: DateTime.now().minute,
+          second: DateTime.now().second + 5));
+}
+
+void Snooze10min(ReceivedAction action) {
+  Map<String, String> load = action.payload!;
+  String medName = load["MedicineName"].toString();
+  String medType = load["MedicineType"].toString();
+  String dosage = load["Dosage"].toString();
+  DateTime snoozeTime = DateTime.now().add(Duration(minutes: 10));
+  scheduleOneTimeNotification(Medicine(medName, isMedType(medType)), dosage,
+      snoozeTime.hour, snoozeTime.minute);
+}
+
+void scheduleOneTimeNotification(
     Medicine medicine, String Dosage, int hour, int minute) async {
-  // String localTimeZone =
-  //     await AwesomeNotifications().getLocalTimeZoneIdentifier();
-  // String utcTimeZone =
-  //     await AwesomeNotifications().getLocalTimeZoneIdentifier();
   print("notification scheduled at ${hour} ${minute}");
   AwesomeNotifications().createNotification(
       content: NotificationContent(
+          payload: {
+            "MedicineName": "${medicine.Name}",
+            "MedicineType": "${medicine.Type.name}",
+            "Dosage": "$Dosage"
+          },
+          autoDismissible: false,
           // customSound: 'resource://raw/tone',
           id: DateTime.now().millisecond.hashCode,
-          channelKey: 'ch2',
+          channelKey: 'AlertTone1',
           title: 'Time to take your Medicines',
-          body: '${medicine.Name} ${Dosage}'),
+          body: '${medicine.Name} ${Dosage} ${medicine.Type.name}'),
+      actionButtons: [
+        NotificationActionButton(
+            key: 'MarkTaken',
+            label: 'MarkTaken',
+            autoDismissible: false,
+            buttonType: ActionButtonType.KeepOnTop),
+        NotificationActionButton(
+            key: 'Snooze', label: 'Snooze 10min', autoDismissible: false)
+      ],
+      schedule: NotificationCalendar(
+          repeats: false, hour: hour, minute: minute, second: 0)
+      // Future.delayed(Duration(seconds: 3), () {
+      //   newNOtfy();
+      //}
+      );
+}
+
+void scheduleDailyNotification(
+    Medicine medicine, String Dosage, int hour, int minute) async {
+  print("notification scheduled at ${hour} ${minute}");
+  AwesomeNotifications().createNotification(
+      content: NotificationContent(
+          payload: {
+            "MedicineName": "${medicine.Name}",
+            "MedicineType": "${medicine.Type.name}",
+            "Dosage": "$Dosage"
+          },
+          autoDismissible: false,
+          // customSound: 'resource://raw/tone',
+          id: DateTime.now().millisecond.hashCode,
+          channelKey: 'AlertTone1',
+          title: 'Time to take your Medicines',
+          body: '${medicine.Name} ${Dosage} ${medicine.Type.name}'),
+      actionButtons: [
+        NotificationActionButton(
+            key: 'MarkTaken',
+            label: 'MarkTaken',
+            autoDismissible: false,
+            buttonType: ActionButtonType.KeepOnTop),
+        NotificationActionButton(
+            key: 'Snooze', label: 'Snooze 10min', autoDismissible: false)
+      ],
       schedule: NotificationCalendar(
           repeats: true,
           // month: DateTime.now().month,
@@ -88,10 +194,6 @@ void bulkScheduleDailyNotification(
 }
 
 void AddReminder(String medName, String Dosage) async {
-  String localTimeZone =
-      await AwesomeNotifications().getLocalTimeZoneIdentifier();
-  String utcTimeZone =
-      await AwesomeNotifications().getLocalTimeZoneIdentifier();
   AwesomeNotifications().createNotification(
       content: NotificationContent(
           // customSound: 'resource://raw/tone',

@@ -4,6 +4,7 @@ import 'package:path/path.dart' as Path;
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:tablets/Blocs/InventoryProvider.dart';
 import 'package:tablets/Repository/Notifier.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
@@ -26,8 +27,9 @@ void main() async {
   initNotificationService();
 
   //initialize DbLinks
-  var singletonLink = DatabaseLink();
-  await singletonLink.InitDB();
+  DatabaseLink();
+  await DatabaseLink.link.InitDB();
+  await DatabaseLink.link.initNewDB();
 
   //lock Screen orientation to portrait only
   SystemChrome.setPreferredOrientations([
@@ -82,342 +84,377 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.greenAccent.shade400,
-      body: BodyWidget(),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: () async {
-              String dropdownValue = 'Daily';
-              late Medicine selectedMedicine;
-              int numReminders = 1;
-              // List<Schedule> Schedules = [];
-              ScheduleList sList = ScheduleList([]);
+    return ChangeNotifierProvider<InventoryRecon>(
+      create: (_) => InventoryRecon(),
+      child: Scaffold(
+        backgroundColor: Colors.greenAccent.shade400,
+        body: BodyWidget(),
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Consumer<InventoryRecon>(builder: (context, _inventoryRecon, _) {
+              return FloatingActionButton(
+                onPressed: () async {
+                  // await DatabaseLink.ConsumeMedicine(
+                  //     Medicine('
+                  //     Crocin', Medtype.Tablets), 1);
+                  // _inventoryRecon.update();
+                  ScheduleImmediateNotif(
+                      Medicine('Crocin', Medtype.Tablets), '1');
+                },
+                child: Icon(Icons.paste),
+              );
+            }),
+            FloatingActionButton(
+              onPressed: () async {
+                String dropdownValue = 'Daily';
+                late Medicine selectedMedicine;
+                int numReminders = 1;
+                // List<Schedule> Schedules = [];
+                ScheduleList sList = ScheduleList([]);
 
-              late Widget dropDownUi =
-                  ReminderUiBuilder(dropdownValue, numReminders, sList);
+                late Widget dropDownUi =
+                    ReminderUiBuilder(dropdownValue, numReminders, sList);
 
-              List<Medicine> meds = await DatabaseLink.link.getMedicines();
-              print(meds);
-              if (meds.length == 0) {
-                print('was empty');
-                // DatabaseLink.link
-                //     .InsertMedicine(Medicine('Crocin 650', Medtype.Tablets));
-                // meds = await DatabaseLink.link.getMedicines();
-              }
-              selectedMedicine = meds[0];
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    double Dosage = 1;
-
-                    TextEditingController controller = TextEditingController();
-                    controller.text = 1.toString();
-                    return MultiProvider(
-                      providers: [
-                        ChangeNotifierProvider(create: (_) => SelectedDays(7)),
-                        ChangeNotifierProvider(
-                            create: (_) => SelectedMonths(28))
-                      ],
-                      child: AlertDialog(
-                        title: Text('Create a Dosage Reminder'),
-                        content: StatefulBuilder(
-                            builder: (context, StateSetter setState) {
-                          return Container(
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 8.0, top: 10, bottom: 1, right: 8),
-                                  child: Text(
-                                    'Medicine',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                DropdownButtonFormField<String>(
-                                  value: selectedMedicine.Name,
-                                  icon: const Icon(Icons.arrow_drop_down),
-                                  elevation: 16,
-                                  style:
-                                      const TextStyle(color: Colors.deepPurple),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      selectedMedicine = meds.firstWhere(
-                                          (element) =>
-                                              element.Name == newValue);
-                                    });
-                                  },
-                                  items: meds.map<DropdownMenuItem<String>>(
-                                      (Medicine value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value.Name,
-                                      child: Text(value.Name),
-                                    );
-                                  }).toList(),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 8.0, top: 10, bottom: 1, right: 8),
-                                  child: Text(
-                                    'Dosage',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(5.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Expanded(
-                                          child: TextField(
-                                        controller: controller,
-                                      )),
-                                      Text('${Shorten(selectedMedicine.Type)}'),
-                                      TextButton(
-                                          style: ElevatedButton.styleFrom(
-                                              shape: CircleBorder(),
-                                              primary: Colors.grey.shade100),
-                                          child: Icon(Icons.remove),
-                                          onPressed: () {
-                                            int curr =
-                                                int.parse(controller.text);
-                                            if (curr > 1) {
-                                              controller.text =
-                                                  (curr - 1).toString();
-                                            }
-                                          }),
-                                      TextButton(
-                                          style: ElevatedButton.styleFrom(
-                                              shape: CircleBorder(),
-                                              primary: Colors.grey.shade100),
-                                          child: Icon(Icons.add),
-                                          onPressed: () {
-                                            int curr =
-                                                int.parse(controller.text);
-                                            if (curr < 10) {
-                                              controller.text =
-                                                  (curr + 1).toString();
-                                            }
-                                          }),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 8.0, top: 10, bottom: 1, right: 8),
-                                  child: Text(
-                                    'Schedule',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                DropdownButtonFormField<String>(
-                                  value: dropdownValue,
-                                  icon: const Icon(Icons.arrow_drop_down),
-                                  elevation: 16,
-                                  style:
-                                      const TextStyle(color: Colors.deepPurple),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      dropdownValue = newValue!;
-                                      dropDownUi = ReminderUiBuilder(
-                                          dropdownValue, numReminders, sList);
-                                    });
-                                  },
-                                  items: <String>['Daily', 'Weekly', 'Monthly']
-                                      .map<DropdownMenuItem<String>>(
-                                          (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                ),
-                                dropDownUi,
-                              ],
-                            ),
-                          );
-                        }),
-                        actions: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                height: getHeightByFactor(context, 0.05),
-                                width: getWidthByFactor(context, 0.35),
-                                child: Consumer2<SelectedDays, SelectedMonths>(
-                                    builder: (context, _selectedDays,
-                                        _selectedMonths, _) {
-                                  return TextButton(
-                                    child: Text('Set Reminder'),
-                                    onPressed: () async {
-                                      switch (dropdownValue) {
-                                        case 'Daily':
-                                          sList.scheduleList.forEach((element) {
-                                            element.dosage =
-                                                double.parse(controller.text);
-                                          });
-                                          bulkScheduleDailyNotification(
-                                              sList,
-                                              selectedMedicine,
-                                              controller.text);
-
-                                          Navigator.pop(context);
-                                          break;
-
-                                        case 'Weekly':
-                                          sList.scheduleList.forEach((element) {
-                                            element.dosage =
-                                                double.parse(controller.text);
-                                          });
-
-                                          List<int> _selctedDays =
-                                              _selectedDays.selected();
-
-                                          sList = sList
-                                              .getWeeklySchedules(_selctedDays);
-
-                                          bulkScheduleDailyNotification(
-                                              sList,
-                                              selectedMedicine,
-                                              controller.text);
-
-                                          Navigator.pop(context);
-                                          break;
-
-                                        case 'Monthly':
-                                          sList.scheduleList.forEach((element) {
-                                            element.dosage =
-                                                double.parse(controller.text);
-                                          });
-
-                                          List<int> _selctedMonths =
-                                              _selectedMonths.selected();
-
-                                          sList = sList.getMonthlySchedules(
-                                              _selctedMonths);
-
-                                          bulkScheduleDailyNotification(
-                                              sList,
-                                              selectedMedicine,
-                                              controller.text);
-
-                                          Navigator.pop(context);
-                                          break;
-                                        default:
-                                          print('Defaulted');
-                                      }
-                                    },
-                                  );
-                                }),
-                              ),
-                              Container(
-                                width: getWidthByFactor(context, 0.35),
-                                height: getHeightByFactor(context, 0.05),
-                                child: TextButton(
-                                  child: Text('Cancel'),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  });
-              // newNOtfy();
-            },
-            tooltip: 'Add Dosage Reminder',
-            child: const Icon(Icons.add),
-          ),
-          FloatingActionButton(
-            onPressed: () {
-              CancelAllSchedules();
-            },
-            child: Icon(Icons.delete_forever),
-          ),
-          FloatingActionButton(
-              child: Icon(Icons.medication),
-              onPressed: () {
-                TextEditingController controller = TextEditingController();
+                List<Medicine> meds = await DatabaseLink.link.getMedicines();
+                print(meds);
+                if (meds.length == 0) {
+                  print('was empty');
+                  // DatabaseLink.link
+                  //     .InsertMedicine(Medicine('Crocin 650', Medtype.Tablets));
+                  // meds = await DatabaseLink.link.getMedicines();
+                }
+                selectedMedicine = meds[0];
                 showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      List<Medtype> options = Medtype.values;
+                      double Dosage = 1;
 
-                      Medtype? selectedMedType = options[0];
-                      return AlertDialog(
-                        title: Text('Add Medicine'),
-                        content: Container(
-                          width: getWidthByFactor(context, 0.8),
-                          height: getHeightByFactor(context, 0.7),
-                          child: Column(
-                            children: [
-                              TextField(
-                                controller: controller,
-                                decoration: InputDecoration(
-                                    hintText: 'Enter Medicine Name',
-                                    labelText: 'Medicine Name'),
-                              ),
-                              DropdownButtonFormField<Medtype>(
-                                value: selectedMedType,
-                                items: options.map<DropdownMenuItem<Medtype>>(
-                                    (Medtype value) {
-                                  return DropdownMenuItem<Medtype>(
-                                    value: value,
-                                    child: Text(value.name),
-                                  );
-                                }).toList(),
-                                onChanged: (Medtype? value) {
-                                  setState(() {
-                                    selectedMedType = value;
-                                  });
-                                  print(selectedMedType);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              TextButton(
-                                child: Text('Add Medicine'),
-                                onPressed: () {
-                                  String MedName =
-                                      controller.value.text.toString();
-
-                                  print("Medicine Name : ${MedName}");
-
-                                  InventoryItem i = InventoryItem(
-                                      Medicine(MedName, selectedMedType!));
-                                  print(i.toMap());
-                                  DatabaseLink.link.InsertInventoryItem(i);
-                                  Navigator.pop(context);
-                                },
-                              ),
-                              TextButton(
-                                child: Text('Dismiss'),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                              )
-                            ],
-                          ),
+                      TextEditingController controller =
+                          TextEditingController();
+                      controller.text = 1.toString();
+                      return MultiProvider(
+                        providers: [
+                          ChangeNotifierProvider(
+                              create: (_) => SelectedDays(7)),
+                          ChangeNotifierProvider(
+                              create: (_) => SelectedMonths(28))
                         ],
+                        child: AlertDialog(
+                          title: Text('Create a Dosage Reminder'),
+                          content: StatefulBuilder(
+                              builder: (context, StateSetter setState) {
+                            return Container(
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 8.0,
+                                        top: 10,
+                                        bottom: 1,
+                                        right: 8),
+                                    child: Text(
+                                      'Medicine',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  DropdownButtonFormField<String>(
+                                    value: selectedMedicine.Name,
+                                    icon: const Icon(Icons.arrow_drop_down),
+                                    elevation: 16,
+                                    style: const TextStyle(
+                                        color: Colors.deepPurple),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        selectedMedicine = meds.firstWhere(
+                                            (element) =>
+                                                element.Name == newValue);
+                                      });
+                                    },
+                                    items: meds.map<DropdownMenuItem<String>>(
+                                        (Medicine value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value.Name,
+                                        child: Text(value.Name),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 8.0,
+                                        top: 10,
+                                        bottom: 1,
+                                        right: 8),
+                                    child: Text(
+                                      'Dosage',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(5.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Expanded(
+                                            child: TextField(
+                                          controller: controller,
+                                        )),
+                                        Text(
+                                            '${Shorten(selectedMedicine.Type)}'),
+                                        TextButton(
+                                            style: ElevatedButton.styleFrom(
+                                                shape: CircleBorder(),
+                                                primary: Colors.grey.shade100),
+                                            child: Icon(Icons.remove),
+                                            onPressed: () {
+                                              int curr =
+                                                  int.parse(controller.text);
+                                              if (curr > 1) {
+                                                controller.text =
+                                                    (curr - 1).toString();
+                                              }
+                                            }),
+                                        TextButton(
+                                            style: ElevatedButton.styleFrom(
+                                                shape: CircleBorder(),
+                                                primary: Colors.grey.shade100),
+                                            child: Icon(Icons.add),
+                                            onPressed: () {
+                                              int curr =
+                                                  int.parse(controller.text);
+                                              if (curr < 10) {
+                                                controller.text =
+                                                    (curr + 1).toString();
+                                              }
+                                            }),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 8.0,
+                                        top: 10,
+                                        bottom: 1,
+                                        right: 8),
+                                    child: Text(
+                                      'Schedule',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  DropdownButtonFormField<String>(
+                                    value: dropdownValue,
+                                    icon: const Icon(Icons.arrow_drop_down),
+                                    elevation: 16,
+                                    style: const TextStyle(
+                                        color: Colors.deepPurple),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        dropdownValue = newValue!;
+                                        dropDownUi = ReminderUiBuilder(
+                                            dropdownValue, numReminders, sList);
+                                      });
+                                    },
+                                    items: <String>[
+                                      'Daily',
+                                      'Weekly',
+                                      'Monthly'
+                                    ].map<DropdownMenuItem<String>>(
+                                        (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  dropDownUi,
+                                ],
+                              ),
+                            );
+                          }),
+                          actions: <Widget>[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  height: getHeightByFactor(context, 0.05),
+                                  width: getWidthByFactor(context, 0.35),
+                                  child:
+                                      Consumer2<SelectedDays, SelectedMonths>(
+                                          builder: (context, _selectedDays,
+                                              _selectedMonths, _) {
+                                    return TextButton(
+                                      child: Text('Set Reminder'),
+                                      onPressed: () async {
+                                        switch (dropdownValue) {
+                                          case 'Daily':
+                                            sList.scheduleList
+                                                .forEach((element) {
+                                              element.dosage =
+                                                  double.parse(controller.text);
+                                            });
+                                            bulkScheduleDailyNotification(
+                                                sList,
+                                                selectedMedicine,
+                                                controller.text);
+
+                                            Navigator.pop(context);
+                                            break;
+
+                                          case 'Weekly':
+                                            sList.scheduleList
+                                                .forEach((element) {
+                                              element.dosage =
+                                                  double.parse(controller.text);
+                                            });
+
+                                            List<int> _selctedDays =
+                                                _selectedDays.selected();
+
+                                            sList = sList.getWeeklySchedules(
+                                                _selctedDays);
+
+                                            bulkScheduleDailyNotification(
+                                                sList,
+                                                selectedMedicine,
+                                                controller.text);
+
+                                            Navigator.pop(context);
+                                            break;
+
+                                          case 'Monthly':
+                                            sList.scheduleList
+                                                .forEach((element) {
+                                              element.dosage =
+                                                  double.parse(controller.text);
+                                            });
+
+                                            List<int> _selctedMonths =
+                                                _selectedMonths.selected();
+
+                                            sList = sList.getMonthlySchedules(
+                                                _selctedMonths);
+
+                                            bulkScheduleDailyNotification(
+                                                sList,
+                                                selectedMedicine,
+                                                controller.text);
+
+                                            Navigator.pop(context);
+                                            break;
+                                          default:
+                                            print('Defaulted');
+                                        }
+                                      },
+                                    );
+                                  }),
+                                ),
+                                Container(
+                                  width: getWidthByFactor(context, 0.35),
+                                  height: getHeightByFactor(context, 0.05),
+                                  child: TextButton(
+                                    child: Text('Cancel'),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       );
                     });
-              })
-        ],
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+                // newNOtfy();
+              },
+              tooltip: 'Add Dosage Reminder',
+              child: const Icon(Icons.add),
+            ),
+            FloatingActionButton(
+              onPressed: () {
+                CancelAllSchedules();
+              },
+              child: Icon(Icons.delete_forever),
+            ),
+            FloatingActionButton(
+                child: Icon(Icons.medication),
+                onPressed: () {
+                  TextEditingController controller = TextEditingController();
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        List<Medtype> options = Medtype.values;
+
+                        Medtype? selectedMedType = options[0];
+                        return AlertDialog(
+                          title: Text('Add Medicine'),
+                          content: Container(
+                            width: getWidthByFactor(context, 0.8),
+                            height: getHeightByFactor(context, 0.7),
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: controller,
+                                  decoration: InputDecoration(
+                                      hintText: 'Enter Medicine Name',
+                                      labelText: 'Medicine Name'),
+                                ),
+                                DropdownButtonFormField<Medtype>(
+                                  value: selectedMedType,
+                                  items: options.map<DropdownMenuItem<Medtype>>(
+                                      (Medtype value) {
+                                    return DropdownMenuItem<Medtype>(
+                                      value: value,
+                                      child: Text(value.name),
+                                    );
+                                  }).toList(),
+                                  onChanged: (Medtype? value) {
+                                    setState(() {
+                                      selectedMedType = value;
+                                    });
+                                    print(selectedMedType);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                TextButton(
+                                  child: Text('Add Medicine'),
+                                  onPressed: () {
+                                    String MedName =
+                                        controller.value.text.toString();
+
+                                    print("Medicine Name : ${MedName}");
+
+                                    InventoryItem i = InventoryItem(
+                                        Medicine(MedName, selectedMedType!));
+                                    print(i.toMap());
+                                    DatabaseLink.link.InsertInventoryItem(i);
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text('Dismiss'),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                )
+                              ],
+                            ),
+                          ],
+                        );
+                      });
+                })
+          ],
+        ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 
@@ -534,6 +571,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Consumer<ReminderTimeList>(
                   builder: (context, reminderTimeList, _) {
+                ScrollController _controller = ScrollController();
                 return Padding(
                   padding: const EdgeInsets.all(5),
                   child: Column(
@@ -543,6 +581,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         width: getFullWidth(context),
                         height: getHeightByFactor(context, 0.05),
                         child: ListView(
+                            controller: _controller,
                             scrollDirection: Axis.horizontal,
                             children: [
                               Consumer<SelectedDays>(
