@@ -5,6 +5,8 @@ import 'dart:convert';
 import '../Repository/DBInterfacer.dart';
 
 class Medicine implements DBSerialiser {
+  int? Id;
+
   late String Name;
   late Medtype Type;
 
@@ -15,16 +17,22 @@ class Medicine implements DBSerialiser {
 
   @override
   Map<String, dynamic> toMap() {
-    return {
+    Map<String, dynamic> map = {
       'Name': Name,
       'Type': Type.name,
     };
+    if (Id != null) {
+      map['Id'] = Id;
+    }
+    return map;
   }
 
   @override
-  static toObject(String jsonString) {
-    var decoded = json.decode(jsonString.substring(1, jsonString.length - 1));
-    return Medicine(decoded['Name'], isMedType(decoded['Type']));
+  static Medicine toObject(Map<String, dynamic> map) {
+    Medicine med = Medicine(map['Name'], isMedType(map['Type']));
+    med.Id = map['Id'];
+    // var decoded = json.decode(jsonString.substring(1, jsonString.length - 1));
+    return med;
   }
 }
 

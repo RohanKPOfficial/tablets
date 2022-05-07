@@ -1,12 +1,18 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 // import 'package:path/path.dart';
 import 'package:provider/provider.dart';
-import 'package:tablets/Blocs/InventoryProvider.dart';
+import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
 import 'package:tablets/Components/PlusSymbol.dart';
+import 'package:tablets/Models/Medicine.dart';
+import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/inventoryItem.dart';
 import 'package:tablets/Models/reminderList.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
+
+import 'package:tablets/BlocsNProviders/TodoProvider.dart';
 
 class BodyWidget extends StatelessWidget {
   @override
@@ -37,6 +43,25 @@ class BodyWidget extends StatelessWidget {
                   style: TextStyle(fontSize: getWidthByFactor(context, 0.04)),
                 ),
               ]),
+              Consumer<TodoProvider>(
+                builder: (context, _todoProvider, _) {
+                  return SizedBox(
+                    width: getFullWidth(context),
+                    height: getHeightByFactor(context, 0.2),
+                    child: ListView.builder(
+                        itemCount: _todoProvider.tds.Todos.length,
+                        itemBuilder: (context, index) {
+                          TodoItem tdi = _todoProvider.tds.Todos[index];
+                          return Text(
+                              '${tdi.med.Name} ${tdi.s.dosage == tdi.s.dosage.toInt() ? tdi.s.dosage.toInt() : tdi.s.dosage} ${Shorten(tdi.med.Type)} @ ${tdi.s.hour}:${tdi.s.minute} ${tdi.done == true ? "Yes" : 'No'}',
+                              style: tdi.done == true
+                                  ? TextStyle(
+                                      decoration: TextDecoration.lineThrough)
+                                  : null);
+                        }),
+                  );
+                },
+              ),
               Row(
                 children: [
                   const Expanded(
@@ -60,7 +85,7 @@ class BodyWidget extends StatelessWidget {
                         itemCount: inventoryRecon.currentInventory.length,
                         itemBuilder: (context, position) {
                           return Text(
-                              '$position ${inventoryRecon.currentInventory[position].medicine.Name}');
+                              '$position ${inventoryRecon.currentInventory[position].medicine?.Name}');
                         });
                   }),
                 )
@@ -75,23 +100,26 @@ class BodyWidget extends StatelessWidget {
               initialChildSize: 0.1,
               builder: (context, controller) => Container(
                     color: Colors.white,
-                    child: ListView.builder(
+                    child: ListView(
                       controller: controller,
-                      itemCount: 1,
-                      itemBuilder: (context, index) {
-                        return const SheetUI();
-                      },
+                      children: [
+                        SheetUI(),
+                      ],
                     ),
+
+                    // ListView.builder(
+                    //   controller: controller,
+                    //   itemCount: 1,
+                    //   itemBuilder: (context, index) {
+                    //     return  SheetUI();
+                    //   },
+                    // ),
                   ))
         ],
       ),
     );
   }
 }
-
-// Widget ItemBuilder(context) {
-//   return SheetUI();
-// }
 
 class SheetUI extends StatelessWidget {
   const SheetUI({
@@ -109,7 +137,19 @@ class SheetUI extends StatelessWidget {
         SizedBox(
           height: getHeightByFactor(context, 0.015),
         ),
-        const Text("Medication Reminders"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+                child: SizedBox(
+                    height: getHeightByFactor(context, 0.04),
+                    child: Image.asset(
+                      'Images/settimer.png',
+                      fit: BoxFit.scaleDown,
+                    ))),
+            const Text("Medication Reminders"),
+          ],
+        ),
         Row(
           children: [
             Expanded(
@@ -135,13 +175,6 @@ class SheetUI extends StatelessWidget {
                           SizedBox(
                             height: getHeightByFactor(context, 0.05),
                           ),
-                          Center(
-                              child: SizedBox(
-                                  height: getHeightByFactor(context, 0.08),
-                                  child: Image.asset(
-                                    'Images/settimer.png',
-                                    fit: BoxFit.scaleDown,
-                                  ))),
                           Consumer<InventoryRecon>(
                               builder: (context, _inventoryRecon, _) {
                             List<InventoryItem> currentInv =
@@ -155,22 +188,54 @@ class SheetUI extends StatelessWidget {
                                     child: ListView.builder(
                                         itemCount: currentInv.length,
                                         itemBuilder: (context, index) {
+                                          List<Schedule> current =
+                                              currentInv[index]
+                                                  .slist
+                                                  .scheduleList;
                                           return Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: ExpansionTile(
                                               collapsedBackgroundColor:
                                                   Colors.blue,
                                               title: Text(currentInv[index]
-                                                  .medicine
-                                                  .Name),
+                                                      .medicine
+                                                      ?.Name ??
+                                                  ''),
                                               subtitle: Text(
                                                   '${currentInv[index].medStock}'),
                                               trailing:
                                                   Icon(Icons.arrow_drop_down),
-                                              children: [
-                                                Text(
-                                                    '${currentInv[index].medicine.Name} ${currentInv[index].slist.scheduleList} )}')
-                                              ],
+                                              children: List.generate(
+                                                  current.length,
+                                                  (index) => Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Text(
+                                                              '${current[index].Type} Reminder @ ${[
+                                                            current[index].hour
+                                                          ]}:${[
+                                                            current[index]
+                                                                .minute
+                                                          ]} '),
+                                                          TextButton(
+                                                            onPressed:
+                                                                () async {
+                                                              await DatabaseLink
+                                                                  .link
+                                                                  .deleteSchedule(
+                                                                      current[index]
+                                                                          .NotifId!);
+                                                              InventoryRecon
+                                                                  .instance
+                                                                  .update();
+                                                            },
+                                                            child: Icon(
+                                                                Icons.delete),
+                                                          )
+                                                        ],
+                                                      )),
                                             ),
                                           );
                                         }),
@@ -199,7 +264,7 @@ class SheetUI extends StatelessWidget {
               Text("Medication Inventory"),
               Consumer<InventoryRecon>(builder: (context, inventoryRecon, _) {
                 return SizedBox(
-                  height: getHeightByFactor(context, 0.45),
+                  height: getHeightByFactor(context, 0.3),
                   width: getWidthByFactor(context, 1),
                   child: ListView.builder(
                       itemCount: inventoryRecon.currentInventory.length,
@@ -222,7 +287,7 @@ class SheetUI extends StatelessWidget {
                                   child: Column(
                                     children: [
                                       Text(
-                                          '${i.medicine.Name} ${i.medStock % 1 == 0 ? i.medStock.toInt() : i.medStock} ${i.medicine.Type.name}'),
+                                          '${i.medicine?.Name} ${i.medStock % 1 == 0 ? i.medStock.toInt() : i.medStock} ${i.medicine?.Type.name}'),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
@@ -232,8 +297,12 @@ class SheetUI extends StatelessWidget {
                                             onSubmitted: (x) {
                                               i.medStock +=
                                                   int.parse(controller.text);
-                                              DatabaseLink.link
-                                                  .InsertInventoryItem(i);
+                                              // DatabaseLink.link
+                                              //     .InsertInventoryItem(i);
+                                              DatabaseLink.link.updateStock(
+                                                  i.Id!, i.medStock);
+                                              InventoryRecon.instance
+                                                  .updateSingle(position);
                                             },
                                             keyboardType: TextInputType.number,
                                             decoration: InputDecoration(
@@ -271,11 +340,14 @@ class SheetUI extends StatelessWidget {
                                           ),
                                           TextButton(
                                             onPressed: () {
-                                              inventoryRecon.update();
+                                              InventoryRecon.instance
+                                                  .updateSingle(position);
                                               i.medStock +=
                                                   int.parse(controller.text);
-                                              DatabaseLink.link
-                                                  .InsertInventoryItem(i);
+                                              DatabaseLink.link.updateStock(
+                                                  i.Id!, i.medStock);
+                                              InventoryRecon.instance
+                                                  .updateSingle(position);
                                             },
                                             child: const Text('Restock'),
                                           )

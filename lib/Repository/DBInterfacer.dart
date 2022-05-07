@@ -5,5 +5,5 @@ class DBSerialiser {
     return {"SampleKey": 5}; //override implementation in implementing classes
   }
 
-  static dynamic toObject(String jsonString) {}
+  static dynamic toObject(dynamic d) {}
 }
