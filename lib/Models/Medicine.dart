@@ -2,6 +2,9 @@ library tablets;
 
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../Repository/DBInterfacer.dart';
 
 class Medicine implements DBSerialiser {
@@ -33,6 +36,27 @@ class Medicine implements DBSerialiser {
     med.Id = map['Id'];
     // var decoded = json.decode(jsonString.substring(1, jsonString.length - 1));
     return med;
+  }
+
+  static IconData medIcon(Medtype? type) {
+    switch (type) {
+      case Medtype.Tablets:
+        return FontAwesomeIcons.tablets;
+      case Medtype.Capsules:
+        return FontAwesomeIcons.capsules;
+      case Medtype.ml_Syrup:
+        return FontAwesomeIcons.prescriptionBottleMedical;
+      case Medtype.Pumps:
+        return FontAwesomeIcons.pumpMedical;
+      case Medtype.Topical_Smear:
+        return FontAwesomeIcons.bottleWater;
+      case Medtype.Units:
+        return FontAwesomeIcons.syringe;
+      case Medtype.Other:
+        return FontAwesomeIcons.pills;
+      default:
+        return FontAwesomeIcons.pills;
+    }
   }
 }
 

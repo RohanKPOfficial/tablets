@@ -18,4 +18,11 @@ class TodoItem implements Comparable {
     int t2 = other.s.hour * 60 + other.s.minute;
     return t1.compareTo(t2);
   }
+
+  static String to12Hour(int hour, int minute) {
+    int _12hr = hour % 12;
+    String _am_pm = hour >= 12 ? 'pm' : 'am';
+
+    return '$_12hr : $minute $_am_pm';
+  }
 }
