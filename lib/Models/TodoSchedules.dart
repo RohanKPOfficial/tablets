@@ -27,18 +27,15 @@ class TodoSchedules {
     //initial todos data fetch for reminder pending today;
   }
 
-  updateTodos(
-      {bool available = false,
-      bool forceResync = false,
-      List<int> MarkedIds = const []}) async {
+  updateTodos({
+    bool available = false,
+  }) async {
     bool exists = false;
     exists = available
         ? available
         : await DatabaseLink.link.TodoExists(today.day, today.month);
-    exists = forceResync ? false : exists;
     if (exists) {
       print("TODOS Exist fetch from table");
-      //TODO exists fetch from schedules table
       Todos = await DatabaseLink.link.getTodos();
       Todos.sort();
     } else {
@@ -54,18 +51,11 @@ class TodoSchedules {
       for (int i = 0; i < Todos.length; i++) {
         DbTodoSchedules dbts =
             DbTodoSchedules(Todos[i].s.Id!, Todos[i].med.Id!);
-        if (forceResync) {
-          if (MarkedIds.contains(dbts.SId)) {
-            dbts.Marked = 1;
-          }
-        }
         batch.insert('TodoSchedules', dbts.toMap(),
             conflictAlgorithm: ConflictAlgorithm.replace);
       }
       await batch.commit();
 
-      //all todos for today created and inserted  into db
-      print("updateCall #3 true modifier");
       updateTodos(available: true);
     }
   }
@@ -75,6 +65,8 @@ class TodoSchedules {
     int SId = t.s.Id!;
     await DatabaseLink.link.MarkTodo(SId);
   }
+
+  void InsertTodo(Schedule s) {}
 
   static MarkTodoBySId(int SId) async {
     await DatabaseLink.link.MarkTodo(SId);

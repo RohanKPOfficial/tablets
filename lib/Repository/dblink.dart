@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:ui';
-
+import 'package:tablets/Models/DbTodo.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as Path;
 import 'package:tablets/BlocsNProviders/TodoProvider.dart';
+import 'package:tablets/Models/DbTodo.dart';
 import 'package:tablets/Models/Medicine.dart';
 import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/TodoSchedules.dart';
@@ -15,7 +16,6 @@ import 'package:tablets/Repository/dblink.dart';
 import '../BlocsNProviders//InventoryProvider.dart';
 import 'package:tablets/Models/reminderList.dart';
 
-import '../Models/DbTodo.dart';
 import 'Notifier.dart';
 
 class DatabaseLink {
@@ -57,7 +57,7 @@ class DatabaseLink {
         await db.execute(
             'CREATE TABLE Schedules(Id INTEGER PRIMARY KEY AUTOINCREMENT,MedId INTEGER ,Type Text,date INTEGER ,day INTEGER,hour INTEGER,minute INTEGER ,dosage TEXT,NotifId INTEGER, FOREIGN KEY (MedId) REFERENCES Medicines(Id) ON DELETE CASCADE ON UPDATE NO ACTION);');
         await db.execute(
-            'CREATE TABLE TodoSchedules(Id INTEGER PRIMARY KEY AUTOINCREMENT,SId INTEGER ,MId INTEGER,Marked INTEGER , FOREIGN KEY (SId) References Schedules(Id) , FOREIGN KEY (MId) References Medicines(Id));');
+            'CREATE TABLE TodoSchedules(Id INTEGER PRIMARY KEY AUTOINCREMENT,SId INTEGER ,MId INTEGER,Marked INTEGER , FOREIGN KEY (SId) References Schedules(Id) , FOREIGN KEY (MId) References Medicines(Id) ON DELETE CASCADE ON UPDATE NO ACTION);');
       },
       version: 1,
     ).whenComplete(() => initCode = 1);
@@ -148,14 +148,28 @@ class DatabaseLink {
       var db = await dbInstance2;
       int Sid = await db.insert('Schedules', s.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace);
-
+      if (isScheduledForToday(s)) {
+        DbTodoSchedules dbts = DbTodoSchedules(Sid, s.MedId);
+        await db.insert('TodoSchedules', dbts.toMap());
+      }
       return Sid; //status code success
     } catch (e) {
       return -404; //error code
     }
-  } //checked
+  }
 
-  static Future<int> ConsumeMedicine(int MedId, double units, int SId) async {
+  bool isScheduledForToday(Schedule s) {
+    if ((s.Type == 'Daily') ||
+        (s.date == DateTime.now().day) ||
+        (s.day == DateTime.now().weekday)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static Future<int> ConsumeMedicine(
+      int MedId, String MedName, double units, int SId) async {
     InventoryItem i;
     try {
       i = await DatabaseLink.link.getInventoryItem(MedId);
@@ -169,11 +183,18 @@ class DatabaseLink {
 
     if (i.medStock >= units) {
       i.medStock = i.medStock - units;
+
       print('consumed ${units} units new stcok ${i.medStock}');
     } else {
       return 0;
     }
     await DatabaseLink.link.updateStock(i.Id!, i.medStock);
+
+    if (i.medStock < 10) {
+      //10 is the low stock threshhold
+
+      LowStockNotif(MedName, i.medStock.toInt());
+    }
 
     if (WidgetsBinding.instance?.lifecycleState == AppLifecycleState.paused ||
         WidgetsBinding.instance?.lifecycleState == AppLifecycleState.resumed) {
@@ -203,10 +224,13 @@ class DatabaseLink {
       return item;
     });
 
-    allItems.forEach((e) async {
-      e.slist = await getSListByMedId(e.MedId!);
-    });
-    print(allItems.length.toString() + " Total Iteams in inventory");
+    for (int i = 0; i < allItems.length; i++) {
+      allItems[i].slist = await getSListByMedId(allItems[i].MedId!);
+    }
+    // allItems.forEach((e) async {
+    //   e.slist = await getSListByMedId(e.MedId!);
+    // });
+    print(allItems.length.toString() + " Total Iteams7 in inventory");
     return allItems;
   } //checked
 
@@ -324,8 +348,13 @@ class DatabaseLink {
 
   Future<void> purgeTodos() async {
     var db = await dbInstance2;
-    await db.rawQuery('DELETE FROM Todo');
-    await db.rawQuery('DELETE FROM TodoSchedules');
+    var batch = db.batch();
+    batch.rawQuery('DELETE FROM Todo');
+    batch.rawQuery('DELETE FROM TodoSchedules');
+    batch.rawQuery('''delete from sqlite_sequence where name='Todo';''');
+    batch.rawQuery(
+        '''delete from sqlite_sequence where name='TodoSchedules';''');
+    await batch.commit();
     return;
   }
 
@@ -333,6 +362,6 @@ class DatabaseLink {
     cancelSchedule(NotifId);
     var db = await dbInstance2;
     await db.rawQuery(''' DELETE FROM Schedules where Notifid=${NotifId} ''');
-    TodoProvider.sharedInstance.SyncTodos();
+    // TodoProvider.sharedInstance.SyncTodos();
   }
 }

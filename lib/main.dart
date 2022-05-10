@@ -82,8 +82,8 @@ class MyHomePage extends StatelessWidget {
       floatingActionButton: Consumer2<TodoProvider, InventoryRecon>(
           builder: (context, _todoProvider, _inventoryRecon, _) {
         return Container(
-          height: 90,
-          width: 90,
+          height: getHeightByFactor(context, 0.08),
+          width: getHeightByFactor(context, 0.08),
           child: FittedBox(
             child: FloatingActionButton(
               heroTag: null,
@@ -290,7 +290,6 @@ class MyHomePage extends StatelessWidget {
                                                 sList,
                                                 selectedMedicine.Id!,
                                                 controller.text);
-                                            _inventoryRecon.update();
 
                                             Navigator.pop(context);
                                             break;
@@ -309,11 +308,10 @@ class MyHomePage extends StatelessWidget {
                                             sList = sList.getWeeklySchedules(
                                                 _selctedDays);
 
-                                            bulkScheduleNotification(
+                                            await bulkScheduleNotification(
                                                 sList,
                                                 selectedMedicine.Id!,
                                                 controller.text);
-
                                             Navigator.pop(context);
                                             break;
 
@@ -331,7 +329,7 @@ class MyHomePage extends StatelessWidget {
                                             sList = sList.getMonthlySchedules(
                                                 _selctedMonths);
 
-                                            bulkScheduleNotification(
+                                            await bulkScheduleNotification(
                                                 sList,
                                                 selectedMedicine.Id!,
                                                 controller.text);
@@ -341,7 +339,8 @@ class MyHomePage extends StatelessWidget {
                                           default:
                                             print('Defaulted');
                                         }
-                                        _todoProvider.SyncTodos();
+                                        _inventoryRecon.update();
+                                        await _todoProvider.updateFetch();
                                       },
                                     );
                                   }),
@@ -370,25 +369,13 @@ class MyHomePage extends StatelessWidget {
           ),
         );
       }),
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.miniCenterDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         notchMargin: 5,
         color: Colors.blue,
         child: Row(
           children: [
-            Consumer<InventoryRecon>(builder: (context, _inventoryRecon, _) {
-              return Padding(
-                padding: const EdgeInsets.only(
-                    left: 8, right: 8, top: 8, bottom: 20),
-                child: FloatingActionButton(
-                  heroTag: null,
-                  onPressed: () async {},
-                  child: Icon(Icons.paste),
-                ),
-              );
-            }),
             Padding(
               padding:
                   const EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 20),
@@ -403,7 +390,7 @@ class MyHomePage extends StatelessWidget {
             Consumer<InventoryRecon>(builder: (context, _inventoryRecon, _) {
               return Padding(
                 padding: const EdgeInsets.only(
-                    left: 80, right: 8, top: 8, bottom: 20),
+                    left: 10, right: 8, top: 8, bottom: 20),
                 child: FloatingActionButton(
                     heroTag: null,
                     child: Icon(Icons.medication),
@@ -422,14 +409,16 @@ class MyHomePage extends StatelessWidget {
                                 title: Text('Add Medicine'),
                                 content: Container(
                                   width: getWidthByFactor(context, 0.8),
-                                  height: getHeightByFactor(context, 0.7),
+                                  height: getHeightByFactor(context, 0.2),
                                   child: Column(
                                     children: [
                                       TextField(
+                                        textCapitalization:
+                                            TextCapitalization.words,
                                         controller: controller,
                                         decoration: InputDecoration(
                                             hintText: 'Enter Medicine Name',
-                                            labelText: 'Medicine Name'),
+                                            labelText: 'Enter Medicine Name'),
                                       ),
                                       DropdownButtonFormField<Medtype>(
                                         value: selectedMedType,
@@ -450,6 +439,10 @@ class MyHomePage extends StatelessWidget {
                                       ),
                                     ],
                                   ),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      getWidthByFactor(context, 0.1)),
                                 ),
                                 actions: [
                                   Row(

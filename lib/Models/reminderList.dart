@@ -178,7 +178,7 @@ class Schedule implements DBSerialiser {
 }
 
 class ReminderTimeList with ChangeNotifier {
-  late List myList;
+  late List<TimeOfDay> myList;
 
   ReminderTimeList(List<TimeOfDay> timeList) {
     myList = timeList;
@@ -193,7 +193,7 @@ class ReminderTimeList with ChangeNotifier {
   }
 
   regenIncrement() {
-    myList.add(TimeOfDay.now());
+    myList.add(addTime(myList.last, 1));
     notifyListeners();
   }
 
@@ -209,6 +209,14 @@ class ReminderTimeList with ChangeNotifier {
 
   get(int index) {
     return myList[index];
+  }
+
+  TimeOfDay addTime(TimeOfDay td, int minutes) {
+    if (td.minute + minutes <= 59) {
+      return TimeOfDay(hour: td.hour, minute: td.minute + minutes);
+    } else {
+      return TimeOfDay(hour: td.hour + 1, minute: (td.minute + minutes) % 60);
+    }
   }
 
   static Schedule ToSchedule(TimeOfDay td, int MedId) {

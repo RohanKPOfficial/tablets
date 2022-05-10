@@ -19,19 +19,37 @@ class TodoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> SyncTodos() async {
-    List<int> MarkedIds = [];
-    areAllChecked();
-    tds.fetchTodoItems();
-    await tds.updateTodos(forceResync: true, MarkedIds: MarkedIds);
-    areAllChecked();
+  // Future<void> SyncTodos() async {
+  //   List<int> MarkedIds = getMarked();
+  //   areAllChecked();
+  //   tds.fetchTodoItems();
+  //   await tds.updateTodos(forceResync: true, MarkedIds: MarkedIds);
+  //   areAllChecked();
+  //   notifyListeners();
+  // }
+
+  Future updateFetch() async {
+    await tds.updateTodos(available: true);
     notifyListeners();
+    return;
   }
 
   void MarkNotify(int index) async {
     await tds.MarkTodo(index);
     areAllChecked();
     notifyListeners();
+  }
+
+  List<int> getMarked() {
+    List<int> Marked = [];
+    tds.Todos.forEach((element) {
+      if (element.done) {
+        Marked.add(element.s.Id!);
+      }
+    });
+    print('Marked Sid');
+    print(Marked.toString());
+    return Marked;
   }
 
   void areAllChecked() {

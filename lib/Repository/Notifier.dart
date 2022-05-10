@@ -67,9 +67,15 @@ void scheduleNotification(Medicine medicine, String Dosage, Schedule s) async {
             "MedicineType": "${medicine.Type.name}",
             "Dosage": "$Dosage",
             "SId": '${s.Id}',
+            "NotifId": '${s.NotifId}',
+            "orgTime":
+                '${s.hour % 12 == 0 ? 12 : s.hour % 12}:${s.minute}${s.hour >= 12 ? 'pm' : 'am'}'
           },
+          notificationLayout: NotificationLayout.BigPicture,
+          bigPicture: 'asset://Images/gif1.gif',
           autoDismissible: false,
-          // customSound: 'resource://raw/tone',
+          locked: true,
+          wakeUpScreen: true,
           id: s.NotifId!,
           channelKey: 'alerttone1',
           title: 'Time to take your Medicines',
@@ -79,41 +85,97 @@ void scheduleNotification(Medicine medicine, String Dosage, Schedule s) async {
             key: 'MarkTaken',
             label: 'MarkTaken',
             autoDismissible: false,
-            actionType: ActionType.SilentBackgroundAction),
+            actionType: ActionType.KeepOnTop),
         NotificationActionButton(
             key: 'Snooze',
             label: 'Snooze 10min',
             autoDismissible: false,
-            actionType: ActionType.SilentAction)
+            actionType: ActionType.KeepOnTop)
       ],
       schedule: calendar);
 }
 
 //delayed schedule
 void Snooze10min(ReceivedAction action) {
-  Map<String, String> load = action.payload!;
-  String medName = load["MedicineName"].toString();
-  String medType = load["MedicineType"].toString();
-  int Sid = int.parse(load["SId"].toString());
-  int MedId = int.parse(load["MedId"]!);
-  String dosage = load["Dosage"].toString();
-  DateTime snoozeTime = DateTime.now().add(Duration(minutes: 1));
-  Medicine med = Medicine(medName, isMedType(medType));
-  med.Id = MedId;
+  try {
+    Map<String, String> load = action.payload!;
+    String medName = load["MedicineName"].toString();
+    String medType = load["MedicineType"].toString();
+    int Sid = int.parse(load["SId"].toString());
+    int MedId = int.parse(load["MedId"]!);
+    String dosage = load["Dosage"].toString();
+    int NotifId = int.parse(load["NotifId"].toString());
+    String orgTime = load["orgTime"].toString();
+    DateTime snoozeTime = DateTime.now().add(Duration(minutes: 1));
+    Medicine med = Medicine(medName, isMedType(medType));
+    med.Id = MedId;
 
-  print(WidgetsBinding.instance?.lifecycleState.toString());
-  scheduleNotificationOnce(
-      med, dosage, snoozeTime.hour, snoozeTime.minute, Sid);
-  // Schedule s = Schedule(MedId: med.Id);
-  // s.hour = snoozeTime.hour;
-  // s.minute = snoozeTime.minute;
-  // scheduleNotification(med, dosage, s);
+    print(WidgetsBinding.instance?.lifecycleState.toString());
+    scheduleNotificationOnce(
+        med, dosage, snoozeTime.hour, snoozeTime.minute, Sid, NotifId, orgTime);
+  } catch (e) {
+    print(e);
+  } finally {
+    print("done576");
+  }
 }
 
-void scheduleNotificationOnce(
-    Medicine medicine, String Dosage, int hour, int minute, int SId) async {
-  print("notification scheduled at ${hour} ${minute}");
-  await (Future.delayed(Duration(seconds: 2)));
+void NoInventoryNotif(String MedName) {
+  AwesomeNotifications().createNotification(
+    content: NotificationContent(
+        payload: {
+          // "MedId": "${medicine.Id}",
+          // "MedicineName": "${medicine.Name}",
+          // "MedicineType": "${medicine.Type.name}",
+          // "Dosage": "$Dosage",
+          // "SId": '${SId}',
+          // "NotifId": '${NotifId}',
+          // "orgTime": orgTime
+        },
+        autoDismissible: true,
+        locked: false,
+        notificationLayout: NotificationLayout.BigPicture,
+        bigPicture: 'asset://Images/8712cbcfca47a97413070306f00de56a.gif',
+        id: DateTime.now().microsecond,
+        channelKey: 'alerttone1',
+        title: 'No stocks available in inventory for ${MedName}!',
+        body:
+            'Forgot to update medicine restock ? .Tap to update Now . Ran out od meds tap Order below to order online'),
+    actionButtons: [
+      NotificationActionButton(
+          key: 'OrderOnline',
+          label: 'Order Medicines',
+          autoDismissible: false,
+          actionType: ActionType.Default)
+    ],
+  );
+}
+
+void LowStockNotif(String lowStockMed, int left) {
+  AwesomeNotifications().createNotification(
+    content: NotificationContent(
+        autoDismissible: false,
+        locked: false,
+        notificationLayout: NotificationLayout.BigText,
+        id: DateTime.now().microsecond + 8,
+        channelKey: 'alerttone1',
+        title: 'Low Stocks for Meds!',
+        body: 'Shop for meds before they run out. Tap order to order online.'
+            '* ${lowStockMed} only ${left} units left'),
+    actionButtons: [
+      NotificationActionButton(
+          key: 'OrderOnline',
+          label: 'Order Medicines',
+          autoDismissible: false,
+          actionType: ActionType.Default)
+    ],
+  );
+}
+
+void scheduleNotificationOnce(Medicine medicine, String Dosage, int hour,
+    int minute, int SId, int NotifId, String orgTime) {
+  print("notification scheduled immonfo $hour $minute");
+  // await (Future.delayed(Duration(seconds: 2)));
   AwesomeNotifications().createNotification(
       content: NotificationContent(
           payload: {
@@ -121,27 +183,39 @@ void scheduleNotificationOnce(
             "MedicineName": "${medicine.Name}",
             "MedicineType": "${medicine.Type.name}",
             "Dosage": "$Dosage",
-            "SId": '${SId}'
+            "SId": '${SId}',
+            "NotifId": '${NotifId}',
+            "orgTime": orgTime
           },
           autoDismissible: false,
-          id: DateTime.now().millisecond.hashCode,
+          locked: true,
+          notificationLayout: NotificationLayout.BigPicture,
+          bigPicture: 'asset://Images/gif6.gif',
+          id: NotifId,
           channelKey: 'alerttone1',
-          title: 'Alert : Late for your medicines . Take meds ASAP!',
+          title:
+              'Alert : Late for your medicines @ ${orgTime}. Take meds ASAP!',
           body: '${medicine.Name} ${Dosage} ${medicine.Type.name}'),
       actionButtons: [
         NotificationActionButton(
             key: 'MarkTaken',
             label: 'MarkTaken',
             autoDismissible: false,
-            actionType: ActionType.SilentBackgroundAction),
+            actionType: ActionType.KeepOnTop),
         NotificationActionButton(
             key: 'Snooze',
             label: 'Snooze 10min',
             autoDismissible: false,
-            actionType: ActionType.SilentBackgroundAction)
+            actionType: ActionType.KeepOnTop)
       ],
       schedule: NotificationCalendar(
-          repeats: false, hour: hour, minute: minute, second: 0));
+        day: DateTime.now().day,
+        weekday: DateTime.now().weekday,
+        hour: hour,
+        minute: minute,
+        second: 0,
+        repeats: false,
+      ));
 }
 
 //misc

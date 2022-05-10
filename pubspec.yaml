@@ -46,6 +46,8 @@ dependencies:
   test: ^1.19.5
   rive: ^0.8.4
   font_awesome_flutter: ^10.1.0
+  shared_preferences: ^2.0.13
+  url_launcher: ^6.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

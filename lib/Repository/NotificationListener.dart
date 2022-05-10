@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:tablets/BlocsNProviders/TodoProvider.dart';
 import 'package:tablets/Repository/Notifier.dart';
 import 'package:tablets/Repository/dblink.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../BlocsNProviders/InventoryProvider.dart';
+import '../Config/partenrlinks.dart';
 
 class NotificationReaction {
   static Future<void> onActionReceivedMethod(ReceivedAction action) async {
@@ -18,7 +22,8 @@ class NotificationReaction {
         int SId = int.parse(action.payload!['SId'].toString());
         double Dosage = (double.parse(receivedPayload["Dosage"].toString()));
 
-        int _success = await DatabaseLink.ConsumeMedicine(MedId, Dosage, SId);
+        int _success =
+            await DatabaseLink.ConsumeMedicine(MedId, medName, Dosage, SId);
 
         print("ScheduleId " + action.payload!['SId'].toString());
         if (_success == 1) {
@@ -33,16 +38,21 @@ class NotificationReaction {
 
             await TodoProvider.sharedInstance.tds.updateTodos(available: true);
             TodoProvider.sharedInstance.notifyListeners();
+            InventoryRecon().update();
           }
           AwesomeNotifications().dismiss(action.id!);
         } else {
+          NoInventoryNotif(medName);
           print("Unable to consume");
         }
       } else if (action.buttonKeyPressed == "Snooze") {
         print("Snoozed");
-        // print("ScheduleId " + action.payload!['SId'].toString());
+        print("Snooze clicked");
         Snooze10min(action);
         AwesomeNotifications().dismiss(action.id!);
+      } else if (action.buttonKeyPressed == "OrderOnline") {
+        print("Ordering");
+        LaunchPartenerSite();
       }
     }
   }

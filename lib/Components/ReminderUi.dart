@@ -8,16 +8,24 @@ import 'package:tablets/sizer.dart';
 Widget ReminderUiBuilder(BuildContext context, String selected,
     int numReminders, ScheduleList schedules, int MedId) {
   if (selected == 'Daily') {
+    DateTime initTime = DateTime.now().add(Duration(minutes: 1));
     schedules.Modify([
-      ReminderTimeList.ToSchedule(TimeOfDay.now(), MedId)
+      ReminderTimeList.ToSchedule(
+          TimeOfDay(hour: initTime.hour, minute: initTime.minute), MedId)
     ]); //default current time
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => ReminderTimeList(List.generate(
+          create: (_) => ReminderTimeList(
+            List.generate(
               numReminders,
               (index) => TimeOfDay.fromDateTime(
-                  DateTime.now().add(Duration(minutes: index))))),
+                DateTime.now().add(
+                  Duration(minutes: index + 1),
+                ),
+              ),
+            ),
+          ),
         ),
       ],
       child: StatefulBuilder(builder: (context, StateSetter setState) {
@@ -43,6 +51,8 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                           if (reminderTimeList.myList.length > 1) {
                             numReminders--;
                             reminderTimeList.regenDecrement();
+                            schedules.Modify(
+                                reminderTimeList.toScheduleList(MedId));
                           }
                         }),
                     Text('${reminderTimeList.myList.length}'),
@@ -55,6 +65,8 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                           if (reminderTimeList.myList.length < 24) {
                             numReminders++;
                             reminderTimeList.regenIncrement();
+                            schedules.Modify(
+                                reminderTimeList.toScheduleList(MedId));
                           }
                         }),
                   ],
@@ -95,8 +107,10 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
       }),
     );
   } else if (selected == 'Weekly') {
+    DateTime initTime = DateTime.now().add(Duration(minutes: 1));
     schedules.Modify([
-      ReminderTimeList.ToSchedule(TimeOfDay.now(), MedId)
+      ReminderTimeList.ToSchedule(
+          TimeOfDay(hour: initTime.hour, minute: initTime.minute), MedId)
     ]); //default current time
     return MultiProvider(
         providers: [
@@ -104,7 +118,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
             create: (_) => ReminderTimeList(List.generate(
                 numReminders,
                 (index) => TimeOfDay.fromDateTime(
-                    DateTime.now().add(Duration(minutes: index))))),
+                    DateTime.now().add(Duration(minutes: index + 1))))),
           ),
           // ChangeNotifierProvider(
           //   create: (_) => SelectedDays(7),
@@ -164,6 +178,8 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                               if (reminderTimeList.myList.length > 1) {
                                 numReminders--;
                                 reminderTimeList.regenDecrement();
+                                schedules.Modify(
+                                    reminderTimeList.toScheduleList(MedId));
                               }
                             }),
                         Text('${reminderTimeList.myList.length}'),
@@ -176,6 +192,8 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                               if (reminderTimeList.myList.length < 24) {
                                 numReminders++;
                                 reminderTimeList.regenIncrement();
+                                schedules.Modify(
+                                    reminderTimeList.toScheduleList(MedId));
                               }
                             }),
                       ],
@@ -216,8 +234,10 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
           ],
         ));
   } else {
+    DateTime initTime = DateTime.now().add(Duration(minutes: 1));
     schedules.Modify([
-      ReminderTimeList.ToSchedule(TimeOfDay.now(), MedId)
+      ReminderTimeList.ToSchedule(
+          TimeOfDay(hour: initTime.hour, minute: initTime.minute), MedId)
     ]); //default current time
     return MultiProvider(
         providers: [
@@ -225,7 +245,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
             create: (_) => ReminderTimeList(List.generate(
                 numReminders,
                 (index) => TimeOfDay.fromDateTime(
-                    DateTime.now().add(Duration(minutes: index))))),
+                    DateTime.now().add(Duration(minutes: index + 1))))),
           ),
         ],
         child: Column(
@@ -238,15 +258,15 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                     Text('Repeat Dates'),
                     Container(
                       width: getFullWidth(context),
-                      height: getHeightByFactor(context, 0.15),
+                      height: getHeightByFactor(context, 0.08),
                       child:
-                          ListView(scrollDirection: Axis.vertical, children: [
+                          ListView(scrollDirection: Axis.horizontal, children: [
                         Consumer<SelectedMonths>(
                             builder: (context, _selectedMonths, _) {
                           return ToggleButtons(
                             selectedColor: Colors.primaries.first,
                             isSelected: _selectedMonths.selectedElements,
-                            direction: Axis.vertical,
+                            direction: Axis.horizontal,
                             children: List.generate(
                                 28, (index) => Text('${index + 1}')),
                             onPressed: (index) {
@@ -273,6 +293,8 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                               if (reminderTimeList.myList.length > 1) {
                                 numReminders--;
                                 reminderTimeList.regenDecrement();
+                                schedules.Modify(
+                                    reminderTimeList.toScheduleList(MedId));
                               }
                             }),
                         Text('${reminderTimeList.myList.length}'),
@@ -285,6 +307,8 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                               if (reminderTimeList.myList.length < 24) {
                                 numReminders++;
                                 reminderTimeList.regenIncrement();
+                                schedules.Modify(
+                                    reminderTimeList.toScheduleList(MedId));
                               }
                             }),
                       ],

@@ -23,6 +23,6 @@ class TodoItem implements Comparable {
     int _12hr = hour % 12;
     String _am_pm = hour >= 12 ? 'pm' : 'am';
 
-    return '$_12hr : $minute $_am_pm';
+    return '${_12hr == 0 ? 12 : _12hr} : $minute $_am_pm';
   }
 }
