@@ -7,11 +7,10 @@ import 'package:tablets/Models/reminderList.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
 
+import 'AppBodyUI.dart';
 import 'meddetails.dart';
 
 class inventorytile extends StatelessWidget {
-  // static bool initialised = false;
-  // static late double _tileWidth;
   late InventoryItem item;
   late int invIndex;
   // late InventoryRecon recon;
@@ -20,33 +19,26 @@ class inventorytile extends StatelessWidget {
       required int invIndex,
       required BuildContext context}) {
     this.item = item;
-    // if (!initialised) {
-    //   _tileWidth = getWidthByFactor(context, 0.4);
-    //   initialised = true;
-    // }
+
     this.invIndex = invIndex;
   }
-//
-//   @override
-//   State<inventorytile> createState() => _inventorytileState();
-// }
-//
-// class _inventorytileState extends State<inventorytile> {
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (context) => MedDetails(
+            PageRouteBuilder(
+                transitionDuration: Duration(milliseconds: 350),
+                pageBuilder: (_, __, ___) => MedDetails(
                       InvIndex: invIndex,
                     )));
       },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: Colors.yellow,
+          color: Colors.yellow.shade300,
         ),
         width: getWidthByFactor(context, 0.4),
         child: Column(
@@ -72,7 +64,9 @@ class inventorytile extends StatelessWidget {
               ),
             ),
             Text(
-                '${item.medStock % 1 == 0 ? item.medStock.toInt() : item.medStock} ${Shorten(item.medicine?.Type ?? Medtype.Tablets)} inStock'),
+              '${item.medStock % 1 == 0 ? item.medStock.toInt() : item.medStock} ${Shorten(item.medicine?.Type ?? Medtype.Tablets)} inStock',
+              style: TextStyle(color: tileColor(item.medStock, 10)),
+            ),
           ],
         ),
       ),

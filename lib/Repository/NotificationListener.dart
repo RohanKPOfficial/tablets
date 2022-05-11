@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../BlocsNProviders/InventoryProvider.dart';
 import '../Config/partenrlinks.dart';
+import '../main.dart';
 
 class NotificationReaction {
   static Future<void> onActionReceivedMethod(ReceivedAction action) async {
@@ -46,13 +47,13 @@ class NotificationReaction {
           print("Unable to consume");
         }
       } else if (action.buttonKeyPressed == "Snooze") {
-        print("Snoozed");
-        print("Snooze clicked");
         Snooze10min(action);
         AwesomeNotifications().dismiss(action.id!);
       } else if (action.buttonKeyPressed == "OrderOnline") {
         print("Ordering");
         LaunchPartenerSite();
+      } else if (action.buttonKeyPressed == "OnlineMedSearch") {
+        LaunchPartenerSite(action.payload!['MedName']?.toString());
       }
     }
   }

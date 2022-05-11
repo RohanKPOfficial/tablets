@@ -24,13 +24,49 @@ void initNotificationService() {
             channelKey: 'alerttone1',
             channelName: 'Dosage Reminders',
             channelDescription: 'Scheduled Reminders for your medication',
-            defaultColor: Color(0xFF9D50DD),
+            defaultColor: Colors.green,
             ledColor: Colors.white,
             playSound: true,
             locked: true,
             importance: NotificationImportance.Max,
             channelShowBadge: true,
             soundSource: 'resource://raw/tone'),
+        NotificationChannel(
+            channelGroupKey: 'basic_channel_group',
+            channelKey: 'lowStockReminder',
+            channelName: 'LowStockReminders',
+            channelDescription: 'Time to buy Medicines',
+            defaultColor: Colors.green,
+            ledColor: Colors.white,
+            playSound: true,
+            locked: false,
+            importance: NotificationImportance.Max,
+            channelShowBadge: true,
+            soundSource: 'resource://raw/low_stock'),
+        NotificationChannel(
+            channelGroupKey: 'basic_channel_group',
+            channelKey: 'noStockReminder',
+            channelName: 'NoStockReminders',
+            channelDescription: 'Time to buy Medicines',
+            defaultColor: Colors.green,
+            ledColor: Colors.white,
+            playSound: true,
+            locked: false,
+            importance: NotificationImportance.Max,
+            channelShowBadge: true,
+            soundSource: 'resource://raw/cant_consume'),
+        NotificationChannel(
+            channelGroupKey: 'basic_channel_group',
+            channelKey: 'AllDone',
+            channelName: 'Sleep Tight',
+            channelDescription: 'Relax all meds taken',
+            defaultColor: Colors.green,
+            ledColor: Colors.white,
+            playSound: true,
+            locked: false,
+            importance: NotificationImportance.Default,
+            channelShowBadge: true,
+            soundSource: 'resource://raw/cant_consume'),
       ],
       // Channel groups are only visual and are not required
       channelGroups: [
@@ -123,29 +159,25 @@ void Snooze10min(ReceivedAction action) {
 void NoInventoryNotif(String MedName) {
   AwesomeNotifications().createNotification(
     content: NotificationContent(
-        payload: {
-          // "MedId": "${medicine.Id}",
-          // "MedicineName": "${medicine.Name}",
-          // "MedicineType": "${medicine.Type.name}",
-          // "Dosage": "$Dosage",
-          // "SId": '${SId}',
-          // "NotifId": '${NotifId}',
-          // "orgTime": orgTime
-        },
+        payload: {"MedName": MedName},
         autoDismissible: true,
         locked: false,
         notificationLayout: NotificationLayout.BigPicture,
         bigPicture: 'asset://Images/8712cbcfca47a97413070306f00de56a.gif',
         id: DateTime.now().microsecond,
-        channelKey: 'alerttone1',
+        channelKey: 'noStockReminder',
         title: 'No stocks available in inventory for ${MedName}!',
-        body:
-            'Forgot to update medicine restock ? .Tap to update Now . Ran out od meds tap Order below to order online'),
+        body: 'Forgot to update medicine restock?Tap Update or Order'),
     actionButtons: [
       NotificationActionButton(
-          key: 'OrderOnline',
-          label: 'Order Medicines',
+          key: 'OnlineMedSearch',
+          label: 'Order Medicine',
           autoDismissible: false,
+          actionType: ActionType.Default),
+      NotificationActionButton(
+          key: 'UpdateStocks',
+          label: 'Update Inventory',
+          autoDismissible: true,
           actionType: ActionType.Default)
     ],
   );
@@ -154,21 +186,36 @@ void NoInventoryNotif(String MedName) {
 void LowStockNotif(String lowStockMed, int left) {
   AwesomeNotifications().createNotification(
     content: NotificationContent(
+        payload: {"MedName": lowStockMed},
         autoDismissible: false,
         locked: false,
         notificationLayout: NotificationLayout.BigText,
         id: DateTime.now().microsecond + 8,
-        channelKey: 'alerttone1',
+        channelKey: 'lowStockReminder',
         title: 'Low Stocks for Meds!',
         body: 'Shop for meds before they run out. Tap order to order online.'
             '* ${lowStockMed} only ${left} units left'),
     actionButtons: [
       NotificationActionButton(
-          key: 'OrderOnline',
-          label: 'Order Medicines',
+          key: 'OnlineMedSearch',
+          label: 'Order Medicine',
           autoDismissible: false,
           actionType: ActionType.Default)
     ],
+  );
+}
+
+void AllTodosDoneNotif() {
+  AwesomeNotifications().createNotification(
+    content: NotificationContent(
+        autoDismissible: false,
+        locked: false,
+        bigPicture: 'asset://Images/allDone.jpg',
+        notificationLayout: NotificationLayout.BigPicture,
+        id: DateTime.now().microsecond + 8,
+        channelKey: 'AllDone',
+        title: 'All meds taken for today',
+        body: 'Congrats all meds in health issues out.'),
   );
 }
 
@@ -248,28 +295,6 @@ Future<void> SaveSchedules(ScheduleList list) async {
   }
   return;
 }
-
-// void AddReminder(String medName, String Dosage) async {
-//   AwesomeNotifications().createNotification(
-//       content: NotificationContent(
-//           // customSound: 'resource://raw/tone',
-//           id: DateTime.now().millisecond.hashCode,
-//           channelKey: 'ch2',
-//           title: 'Time to take your Medicines',
-//           body: '${medName} ${Dosage}'),
-//       schedule: NotificationCalendar(
-//           repeats: false,
-//           month: DateTime.now().month,
-//           weekday: DateTime.now().weekday,
-//           day: DateTime.now().day,
-//           hour: DateTime.now().hour,
-//           millisecond: DateTime.now().millisecond,
-//           second: DateTime.now().second)
-//       // Future.delayed(Duration(seconds: 3), () {
-//       //   newNOtfy();
-//       //}
-//       );
-// }
 
 //cancelALlSchedules
 void CancelAllSchedules() {

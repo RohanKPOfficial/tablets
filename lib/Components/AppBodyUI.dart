@@ -18,40 +18,29 @@ import 'package:tablets/sizer.dart';
 
 import 'package:tablets/BlocsNProviders/TodoProvider.dart';
 
-Color tileColor(double stock, int i) {
-  if (stock == 0) {
-    return Colors.redAccent;
-  } else if (stock > i) {
-    return Colors.green.shade400;
-  } else {
-    return Colors.yellowAccent;
-  }
-}
-
-String getScheduleType(Schedule s) {
-  if (s.day != 0) {
-    return 'Weekly';
-  } else if (s.date != 0) {
-    return 'Monthly';
-  } else {
-    return 'Daily';
-  }
-}
-
 class BodyWidget2 extends StatelessWidget {
+  BodyWidget2({required this.userName});
+  final String userName;
   @override
   Widget build(BuildContext context) {
     Future.delayed(Duration(seconds: 1), () {
       //reset time dilation to defaullt;
-      timeDilation = 1.0;
+      // timeDilation = 1.0;
     });
     return SafeArea(
       child: Center(
         child: Stack(
           children: [
-            // Center(
-            //   child: const PlusSymbol(),
-            // ),
+            Positioned(
+              top: 100,
+              left: 200,
+              child: Container(
+                  height: 200,
+                  width: 200,
+                  child: Image.asset(
+                    'Images/box1.png',
+                  )),
+            ),
             Column(
               children: [
                 Row(
@@ -60,11 +49,30 @@ class BodyWidget2 extends StatelessWidget {
                     SizedBox(
                       height: getHeightByFactor(context, 0.1),
                     ),
-                    Text(
-                      "Hi Rohan",
-                      style: TextStyle(
-                          fontSize: getWidthByFactor(context, 0.06),
-                          fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        Text(
+                          "Hi ",
+                          style: TextStyle(
+                              fontSize: getWidthByFactor(context, 0.06),
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Hero(
+                          tag: 'HeroName',
+                          child: Container(
+                            child: Text(
+                              "${userName}",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                      color: Colors.black,
+                                      fontSize: getWidthByFactor(context, 0.06),
+                                      fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                   ],
                 ),
@@ -73,9 +81,11 @@ class BodyWidget2 extends StatelessWidget {
                     return Column(
                       children: [
                         Text(
-                          _todoProvider.allChecked
-                              ? "All Caught Up ! Hurray"
-                              : "Upcoming Medication Dosages",
+                          _todoProvider.tds.Todos.length == 0
+                              ? "No reminders set for today"
+                              : _todoProvider.allChecked
+                                  ? "All Caught Up ! Hurray"
+                                  : "Upcoming Medication Dosages",
                           style: TextStyle(
                               fontSize: getWidthByFactor(context, 0.045),
                               fontWeight: FontWeight.bold),
@@ -141,26 +151,42 @@ class BodyWidget2 extends StatelessWidget {
                   height: getFullHeight(context),
                   child: Consumer<InventoryRecon>(
                       builder: (context, _inventoryRecon, _) {
-                    return GridView.builder(
-                      controller: controller,
-                      physics: BouncingScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 4.0,
-                          mainAxisSpacing: 4.0),
-                      itemBuilder: (context, index) {
-                        InventoryItem current =
-                            _inventoryRecon.currentInventory[index];
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: inventorytile(
-                            invIndex: index,
-                            item: current,
-                            context: context,
-                          ),
-                        );
-                      },
-                      itemCount: _inventoryRecon.currentInventory.length,
+                    return Card(
+                      color: Colors.grey.shade100,
+                      child: _inventoryRecon.currentInventory.length == 0
+                          ? Center(
+                              child: Text(
+                                  'No medicines in inventory add one by tapping \'+\''))
+                          : Column(
+                              children: [
+                                Icon(Icons.keyboard_arrow_up),
+                                Expanded(
+                                  child: GridView.builder(
+                                    controller: controller,
+                                    physics: BouncingScrollPhysics(),
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            crossAxisSpacing: 4.0,
+                                            mainAxisSpacing: 4.0),
+                                    itemBuilder: (context, index) {
+                                      InventoryItem current = _inventoryRecon
+                                          .currentInventory[index];
+                                      return Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: inventorytile(
+                                          invIndex: index,
+                                          item: current,
+                                          context: context,
+                                        ),
+                                      );
+                                    },
+                                    itemCount:
+                                        _inventoryRecon.currentInventory.length,
+                                  ),
+                                ),
+                              ],
+                            ),
                     );
                   }),
                 ),
@@ -190,5 +216,25 @@ class BodyWidget2 extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+Color tileColor(double stock, int i) {
+  if (stock == 0) {
+    return Colors.redAccent;
+  } else if (stock > i) {
+    return Colors.green.shade400;
+  } else {
+    return Colors.orange;
+  }
+}
+
+String getScheduleType(Schedule s) {
+  if (s.day != 0) {
+    return 'Weekly';
+  } else if (s.date != 0) {
+    return 'Monthly';
+  } else {
+    return 'Daily';
   }
 }

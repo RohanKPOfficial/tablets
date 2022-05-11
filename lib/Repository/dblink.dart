@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
 import 'package:tablets/Models/DbTodo.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +13,6 @@ import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/TodoSchedules.dart';
 import 'package:tablets/Models/inventoryItem.dart';
 import 'package:tablets/Repository/dblink.dart';
-
-import '../BlocsNProviders//InventoryProvider.dart';
 import 'package:tablets/Models/reminderList.dart';
 
 import 'Notifier.dart';
@@ -40,7 +39,9 @@ class DatabaseLink {
       // `path` package is best practice to ensure the path is correctly
       // constructed for each platform.
       Path.join(await getDatabasesPath(), 'tablets_database_4.db'),
-
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: (db, version) async {
 // Run the CREATE TABLE statement on the database.
         await (db.execute('PRAGMA foreign_keys = ON'));
@@ -57,7 +58,7 @@ class DatabaseLink {
         await db.execute(
             'CREATE TABLE Schedules(Id INTEGER PRIMARY KEY AUTOINCREMENT,MedId INTEGER ,Type Text,date INTEGER ,day INTEGER,hour INTEGER,minute INTEGER ,dosage TEXT,NotifId INTEGER, FOREIGN KEY (MedId) REFERENCES Medicines(Id) ON DELETE CASCADE ON UPDATE NO ACTION);');
         await db.execute(
-            'CREATE TABLE TodoSchedules(Id INTEGER PRIMARY KEY AUTOINCREMENT,SId INTEGER ,MId INTEGER,Marked INTEGER , FOREIGN KEY (SId) References Schedules(Id) , FOREIGN KEY (MId) References Medicines(Id) ON DELETE CASCADE ON UPDATE NO ACTION);');
+            'CREATE TABLE TodoSchedules(Id INTEGER PRIMARY KEY AUTOINCREMENT,SId INTEGER ,MId INTEGER,Marked INTEGER , FOREIGN KEY (SId) References Schedules(Id) ON DELETE CASCADE ON UPDATE NO ACTION , FOREIGN KEY (MId) References Medicines(Id) ON DELETE CASCADE ON UPDATE NO ACTION);');
       },
       version: 1,
     ).whenComplete(() => initCode = 1);
@@ -202,8 +203,29 @@ class DatabaseLink {
     }
 
     await TodoSchedules.MarkTodoBySId(SId);
-
+    await DatabaseLink.link.allDoneCheckNNotify();
     return 1;
+  }
+
+  Future allDoneCheckNNotify() async {
+    bool notify = await allMarked();
+    if (notify) {
+      AllTodosDoneNotif();
+    }
+    return;
+  }
+
+  Future<bool> allMarked() async {
+    var batch = await dbInstance2.batch();
+    batch.rawQuery("SELECT Count(*) as 'Total' from TodoSchedules");
+    batch.rawQuery(
+        "Select Count(*) as 'Marked' from TodoSchedules WHERE Marked=1");
+    var results = await batch.commit();
+    if (results[0][0]['Total'] == 0) {
+      return false; //empty todos no schedules for today
+    } else {
+      return results[0][0]['Total'] == results[1][0]['Marked'] ? true : false;
+    }
   }
 
   Future<List<InventoryItem>> getInventoryItems() async {
@@ -218,6 +240,7 @@ class DatabaseLink {
       item.Id = maps[i]["InvId"];
       item.dumpStock(double.parse(StockString));
       Medicine med = Medicine(maps[i]['Name'], isMedType(maps[i]['Type']));
+      med.Id = int.parse(maps[i]['MedId'].toString());
       item.medicine = med;
       // element.slist = await getSListByMedId(element.MedId!);
 
@@ -363,5 +386,18 @@ class DatabaseLink {
     var db = await dbInstance2;
     await db.rawQuery(''' DELETE FROM Schedules where Notifid=${NotifId} ''');
     // TodoProvider.sharedInstance.SyncTodos();
+  }
+
+  Future<void> deleteMedicine(int? MedId) async {
+    ScheduleList slist = await DatabaseLink.link.getSListByMedId(MedId!);
+    slist.scheduleList.forEach((element) {
+      AwesomeNotifications().cancel(element.NotifId!);
+    });
+    var db = await dbInstance2;
+    await db.rawQuery('''DELETE FROM Medicines where Id=${MedId}''');
+    //
+    // TodoProvider.sharedInstance.updateFetch();
+    // InventoryRecon().update();
+    return;
   }
 }

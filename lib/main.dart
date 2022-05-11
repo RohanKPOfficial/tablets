@@ -7,6 +7,7 @@ import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
 import 'package:tablets/Components/ReminderUi.dart';
 import 'package:tablets/Components/splashscreen.dart';
 import 'package:tablets/Repository/Notifier.dart';
+import 'package:tablets/Repository/Snacker.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -20,6 +21,8 @@ import 'package:tablets/Models/reminderList.dart';
 import 'package:tablets/Components/AppBodyUI.dart';
 
 import 'package:tablets/Models/inventoryItem.dart';
+
+import 'Config/partenrlinks.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,8 +64,9 @@ class MyApp extends StatelessWidget {
         }),
         title: 'Tablets',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+            // primarySwatch: Colors.red,
+            // primarySwatch: Colors.orange,
+            ),
         home: Splasher(),
       ),
     );
@@ -70,15 +74,18 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title, required this.userName})
+      : super(key: key);
 
-  final String title;
+  final String title, userName;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: BodyWidget2(),
+      body: BodyWidget2(
+        userName: this.userName,
+      ),
       floatingActionButton: Consumer2<TodoProvider, InventoryRecon>(
           builder: (context, _todoProvider, _inventoryRecon, _) {
         return Container(
@@ -91,13 +98,13 @@ class MyHomePage extends StatelessWidget {
                 String dropdownValue = 'Daily';
                 late Medicine selectedMedicine;
                 int numReminders = 1;
-                // List<Schedule> Schedules = [];
                 ScheduleList sList = ScheduleList([]);
 
                 List<Medicine> meds = await DatabaseLink.link.getMedicines();
 
                 if (meds.length == 0) {
-                  print('was empty');
+                  ShowSnack(context, 4, SnackType.Warn,
+                      'No Medicines in inventory . Add Medicines by tapping \'+\'');
                 }
                 selectedMedicine = meds[0];
 
@@ -120,6 +127,9 @@ class MyHomePage extends StatelessWidget {
                               create: (_) => SelectedMonths(28))
                         ],
                         child: AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  getWidthByFactor(context, 0.1))),
                           title: Text('Create a Dosage Reminder'),
                           content: StatefulBuilder(
                               builder: (context, StateSetter setState) {
@@ -339,6 +349,8 @@ class MyHomePage extends StatelessWidget {
                                           default:
                                             print('Defaulted');
                                         }
+                                        ShowSnack(context, 2, SnackType.Info,
+                                            'Scheduled Reminder(s) for ${selectedMedicine.Name}');
                                         _inventoryRecon.update();
                                         await _todoProvider.updateFetch();
                                       },
@@ -364,7 +376,7 @@ class MyHomePage extends StatelessWidget {
                 // newNOtfy();
               },
               tooltip: 'Add Dosage Reminder',
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.notification_add),
             ),
           ),
         );
@@ -375,25 +387,42 @@ class MyHomePage extends StatelessWidget {
         notchMargin: 5,
         color: Colors.blue,
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 20),
+              padding: EdgeInsets.only(
+                  left: 8,
+                  right: getWidthByFactor(context, 0.1),
+                  top: 8,
+                  bottom: 12),
               child: FloatingActionButton(
+                elevation: 0,
                 heroTag: null,
+                tooltip: 'Shop for Medicines',
                 onPressed: () {
-                  CancelAllSchedules();
+                  LaunchPartenerSite();
                 },
-                child: Icon(Icons.delete_forever),
+                child: Icon(
+                  Icons.shopping_bag,
+                  size: getWidthByFactor(context, 0.1),
+                ),
               ),
             ),
             Consumer<InventoryRecon>(builder: (context, _inventoryRecon, _) {
               return Padding(
-                padding: const EdgeInsets.only(
-                    left: 10, right: 8, top: 8, bottom: 20),
+                padding: EdgeInsets.only(
+                    left: 10,
+                    right: getWidthByFactor(context, 0.43),
+                    top: 8,
+                    bottom: 12),
                 child: FloatingActionButton(
+                    tooltip: 'Add a Medicine',
+                    elevation: 0,
                     heroTag: null,
-                    child: Icon(Icons.medication),
+                    child: Icon(
+                      Icons.medication,
+                      size: getWidthByFactor(context, 0.1),
+                    ),
                     onPressed: () {
                       TextEditingController controller =
                           TextEditingController();
@@ -454,14 +483,22 @@ class MyHomePage extends StatelessWidget {
                                         onPressed: () async {
                                           String MedName =
                                               controller.value.text.toString();
-
-                                          print("Medicine Name : ${MedName}");
-
-                                          await DatabaseLink.link
-                                              .InsertInventoryItem(Medicine(
-                                                  MedName, selectedMedType!));
-                                          _inventoryRecon.update();
-                                          Navigator.pop(context);
+                                          if (MedName.isNotEmpty) {
+                                            int _success = await DatabaseLink
+                                                .link
+                                                .InsertInventoryItem(Medicine(
+                                                    MedName, selectedMedType!));
+                                            if (_success != -404)
+                                              ShowSnack(
+                                                  context,
+                                                  3,
+                                                  SnackType.Info,
+                                                  'Added $MedName to Inventory');
+                                            _inventoryRecon.update();
+                                            Navigator.pop(context);
+                                          } else {
+                                            //TOdo Error on empty med name
+                                          }
                                         },
                                       ),
                                       TextButton(

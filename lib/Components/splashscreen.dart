@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tablets/Components/Temp.dart';
 import 'package:tablets/main.dart';
 import 'package:tablets/sizer.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
+
+import 'namescreen.dart';
 
 class Splasher extends StatefulWidget {
   const Splasher({Key? key}) : super(key: key);
@@ -16,16 +19,30 @@ class _SplasherState extends State<Splasher> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3, milliseconds: 500), () {
-      timeDilation = 20;
-      Navigator.pushReplacement(
+    delayedNameCheckRedir();
+  }
 
-          // MyHomePage(title: 'Tablets')
-          //   Temp()
+  void delayedNameCheckRedir() async {
+    SharedPreferences instance = await SharedPreferences.getInstance();
+    // instance.remove('UserName');
+    await Future.delayed(Duration(seconds: 3, milliseconds: 500));
+    String? Name = instance.getString('UserName');
+    print('Name $Name');
+    if (Name == null) {
+      Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-              builder: (context) => MyHomePage(title: 'Tablets')));
-    });
+          PageRouteBuilder(
+              transitionDuration: Duration(seconds: 2),
+              pageBuilder: (_, __, ___) => NameScreen()));
+    } else {
+      // timeDilation = 1.5;
+      Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+              transitionDuration: Duration(seconds: 2),
+              pageBuilder: (_, __, ___) =>
+                  MyHomePage(title: 'Tablets', userName: Name)));
+    }
   }
 
   @override

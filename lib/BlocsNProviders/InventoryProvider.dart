@@ -18,7 +18,7 @@ class InventoryRecon extends ChangeNotifier {
     return instance;
   }
 
-  void update() async {
+  Future update() async {
     if (currentInventory.length == 0) {
       print("empty inventory");
     }
