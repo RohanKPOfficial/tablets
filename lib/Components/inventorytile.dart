@@ -1,10 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:tablets/Models/Medicine.dart';
 import 'package:tablets/Models/inventoryItem.dart';
-import 'package:tablets/Models/reminderList.dart';
-import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
 
 import 'AppBodyUI.dart';
@@ -30,14 +26,14 @@ class inventorytile extends StatelessWidget {
         Navigator.push(
             context,
             PageRouteBuilder(
-                transitionDuration: Duration(milliseconds: 350),
+                transitionDuration: const Duration(milliseconds: 350),
                 pageBuilder: (_, __, ___) => MedDetails(
                       InvIndex: invIndex,
                     )));
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(getHeightByFactor(context, 0.02)),
           color: Colors.yellow.shade300,
         ),
         width: getWidthByFactor(context, 0.4),
@@ -45,16 +41,18 @@ class inventorytile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Hero(
-                tag: 'MedName${invIndex}',
+                tag: 'MedName$invIndex',
                 child: Text(
                   '${item.medicine?.Name}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: getHeightByFactor(context, 0.02),
                       fontWeight: FontWeight.bold),
                 )),
             Hero(
-              tag: 'MedIcon${invIndex}',
+              tag: 'MedIcon$invIndex',
               child: Icon(
                 Medicine.medIcon(
                   item.medicine?.Type,

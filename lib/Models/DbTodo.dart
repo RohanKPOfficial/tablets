@@ -12,9 +12,9 @@ class DbTodo implements DBSerialiser {
 
   @override
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {'Date': this.Date, 'MONTH': this.MONTH};
+    Map<String, dynamic> map = {'Date': Date, 'MONTH': MONTH};
     if (Id != null) {
-      map['Id'] = this.Id;
+      map['Id'] = Id;
     }
     return map;
   }

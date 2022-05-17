@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tablets/Components/Temp.dart';
-import 'package:tablets/main.dart';
+import 'package:tablets/ShowCase/showcaser.dart';
 import 'package:tablets/sizer.dart';
-import 'package:flutter/scheduler.dart' show timeDilation;
-
 import 'namescreen.dart';
 
 class Splasher extends StatefulWidget {
@@ -24,24 +21,21 @@ class _SplasherState extends State<Splasher> {
 
   void delayedNameCheckRedir() async {
     SharedPreferences instance = await SharedPreferences.getInstance();
-    // instance.remove('UserName');
-    await Future.delayed(Duration(seconds: 3, milliseconds: 500));
+    instance.remove('UserName');
+    await Future.delayed(const Duration(seconds: 3));
     String? Name = instance.getString('UserName');
-    print('Name $Name');
     if (Name == null) {
       Navigator.pushReplacement(
           context,
           PageRouteBuilder(
-              transitionDuration: Duration(seconds: 2),
+              transitionDuration: const Duration(seconds: 2),
               pageBuilder: (_, __, ___) => NameScreen()));
     } else {
-      // timeDilation = 1.5;
       Navigator.pushReplacement(
           context,
           PageRouteBuilder(
-              transitionDuration: Duration(seconds: 2),
-              pageBuilder: (_, __, ___) =>
-                  MyHomePage(title: 'Tablets', userName: Name)));
+              transitionDuration: const Duration(seconds: 2),
+              pageBuilder: (_, __, ___) => Introduction(User: Name)));
     }
   }
 
@@ -61,7 +55,7 @@ class _SplasherState extends State<Splasher> {
                     height: 512,
                     width: 512,
                     alignment: Alignment.center,
-                    child: RiveAnimation.asset(
+                    child: const RiveAnimation.asset(
                       'Images/splash (1).riv',
                       alignment: Alignment.center,
                       fit: BoxFit.scaleDown,

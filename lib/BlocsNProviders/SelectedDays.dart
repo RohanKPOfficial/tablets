@@ -6,9 +6,9 @@ class SelectedDays extends ChangeNotifier {
   int _selectedCount = 1;
   SelectedDays(int n) {
     selectedElements = List.generate(n, (index) {
-      if (index == DateTime.now().weekday - 1)
+      if (index == DateTime.now().weekday - 1) {
         return true;
-      else {
+      } else {
         return false;
       }
     });
@@ -50,9 +50,9 @@ class SelectedMonths extends ChangeNotifier {
   int _selectedCount = 1;
   SelectedMonths(int n) {
     selectedElements = List.generate(n, (index) {
-      if (index == DateTime.now().day - 1)
+      if (index == DateTime.now().day - 1) {
         return true;
-      else {
+      } else {
         return false;
       }
     });

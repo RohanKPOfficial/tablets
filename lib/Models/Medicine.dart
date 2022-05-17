@@ -1,10 +1,7 @@
 library tablets;
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import '../Repository/DBInterfacer.dart';
 
 class Medicine implements DBSerialiser {
@@ -44,12 +41,12 @@ class Medicine implements DBSerialiser {
         return FontAwesomeIcons.tablets;
       case Medtype.Capsules:
         return FontAwesomeIcons.capsules;
-      case Medtype.ml_Syrup:
-        return FontAwesomeIcons.prescriptionBottleMedical;
+      case Medtype.Syrup:
+        return FontAwesomeIcons.bottleWater;
       case Medtype.Pumps:
         return FontAwesomeIcons.pumpMedical;
-      case Medtype.Topical_Smear:
-        return FontAwesomeIcons.bottleWater;
+      case Medtype.TopicalSmear:
+        return FontAwesomeIcons.prescriptionBottleMedical;
       case Medtype.Units:
         return FontAwesomeIcons.syringe;
       case Medtype.Other:
@@ -60,7 +57,7 @@ class Medicine implements DBSerialiser {
   }
 }
 
-enum Medtype { Tablets, Capsules, ml_Syrup, Units, Pumps, Topical_Smear, Other }
+enum Medtype { Tablets, Capsules, Syrup, Units, Pumps, TopicalSmear, Other }
 
 Medtype isMedType(String s) {
   return Medtype.values.firstWhere((med) => med.name == s);
@@ -74,7 +71,7 @@ String Shorten(Medtype type) {
     case Medtype.Capsules:
       return 'Cap';
 
-    case Medtype.ml_Syrup:
+    case Medtype.Syrup:
       return 'ml';
 
     case Medtype.Units:
@@ -83,7 +80,7 @@ String Shorten(Medtype type) {
     case Medtype.Pumps:
       return 'Pumps';
 
-    case Medtype.Topical_Smear:
+    case Medtype.TopicalSmear:
       return 'Smear';
 
     default:

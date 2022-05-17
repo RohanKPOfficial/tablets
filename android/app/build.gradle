@@ -51,6 +51,12 @@ android {
     }
 }
 
+//dependencies {
+//    // ...
+//    implementation 'com.google.android.material:material:<version>'
+//    // ...
+//}
+
 flutter {
     source '../..'
 }

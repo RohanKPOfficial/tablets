@@ -7,11 +7,13 @@ const String partnerSearchLink =
 LaunchPartenerSite([String? medName = '']) async {
   if (medName == '' || medName == null) {
     Uri link = Uri.parse(partnerSiteLink);
-    if (!await launchUrl(link, mode: LaunchMode.externalApplication))
+    if (!await launchUrl(link, mode: LaunchMode.externalApplication)) {
       print('Could not launch');
+    }
   } else {
     Uri link = Uri.parse(partnerSearchLink + medName);
-    if (!await launchUrl(link, mode: LaunchMode.externalApplication))
+    if (!await launchUrl(link, mode: LaunchMode.externalApplication)) {
       print('Could not launch');
+    }
   }
 }

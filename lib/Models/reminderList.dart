@@ -1,10 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:tablets/Models/Medicine.dart';
-import 'package:tablets/Models/inventoryItem.dart';
-import 'package:tablets/Repository/dblink.dart';
-import 'package:tablets/Models/reminderList.dart' as rem;
 import '../Repository/DBInterfacer.dart';
 
 class ScheduleList implements DBSerialiser {
@@ -20,18 +16,9 @@ class ScheduleList implements DBSerialiser {
       for (int i = 0; i < days.length; i++) {
         Schedule s = scheduleList[j].copyWith();
         s.day = days[i];
-        print('Set day to ${days[i]} @${s.toMap()}');
         newSchedules.add(s);
-        print('new schedules @ iter : ${i}');
-        newSchedules.forEach((element) {
-          print(element.toMap());
-        });
       }
     }
-    print('new schedules');
-    newSchedules.forEach((element) {
-      print(element.toMap());
-    });
     return ScheduleList(newSchedules);
   }
 
@@ -41,18 +28,10 @@ class ScheduleList implements DBSerialiser {
       for (int i = 0; i < dates.length; i++) {
         Schedule s = scheduleList[j].copyWith();
         s.date = dates[i];
-        print('Set day to ${dates[i]} @${s.toMap()}');
+
         newSchedules.add(s);
-        print('new schedules @ iter : ${i}');
-        newSchedules.forEach((element) {
-          print(element.toMap());
-        });
       }
     }
-    print('new schedules');
-    newSchedules.forEach((element) {
-      print(element.toMap());
-    });
     return ScheduleList(newSchedules);
   }
 
@@ -71,13 +50,12 @@ class ScheduleList implements DBSerialiser {
       listContents = '[]';
     }
     Map<String, dynamic> result = {'scheduleList': listContents};
-    // print(result);
 
     return result;
   }
 
   void Modify(List<Schedule> mylist) {
-    this.scheduleList = mylist;
+    scheduleList = mylist;
   }
 
   static List<Schedule> toList(String jsonString) {
@@ -130,14 +108,14 @@ class Schedule implements DBSerialiser {
   }
 
   Schedule copyWith() {
-    return new Schedule(
-        hour: this.hour,
-        minute: this.minute,
-        day: this.day,
-        date: this.date,
-        dosage: this.dosage,
-        MedId: this.MedId,
-        Type: this.Type);
+    return Schedule(
+        hour: hour,
+        minute: minute,
+        day: day,
+        date: date,
+        dosage: dosage,
+        MedId: MedId,
+        Type: Type);
   }
 
   @override

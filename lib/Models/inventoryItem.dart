@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:tablets/Repository/DBInterfacer.dart';
 
@@ -17,23 +16,23 @@ class InventoryItem implements DBSerialiser {
   }
 
   dumpMedicine(Medicine med) {
-    this.medicine = medicine;
+    medicine = medicine;
   }
 
   dumpSchedule(ScheduleList list) {
-    this.slist = list;
+    slist = list;
   }
 
   dumpStock(double Stock) {
-    this.medStock = Stock;
+    medStock = Stock;
   }
 
   incrementStock(int newUnits) {
-    this.medStock += newUnits;
+    medStock += newUnits;
   }
 
   decrementStock(double consumedUnits) {
-    this.medStock -= consumedUnits;
+    medStock -= consumedUnits;
   }
 
   @override
@@ -58,7 +57,7 @@ class InventoryItem implements DBSerialiser {
   static toObject(Map<String, dynamic> map) {
     // var decoded = json.decode(jsonString.substring(1, jsonString.length - 1));
 
-    InventoryItem i = new InventoryItem(map["MedId"]);
+    InventoryItem i = InventoryItem(map["MedId"]);
     i.dumpStock(double.parse(map['medStock']));
     // i.dumpSchedule(ScheduleList.toObject(decoded['slist']));
 

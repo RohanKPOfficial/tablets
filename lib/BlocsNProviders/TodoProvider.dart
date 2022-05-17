@@ -3,30 +3,30 @@ import 'package:flutter/material.dart';
 import 'package:tablets/Models/TodoSchedules.dart';
 
 class TodoProvider extends ChangeNotifier {
-  static late TodoProvider sharedInstance;
+  static late TodoProvider sharedInstance = TodoProvider._internalConstrutor();
   bool allChecked = true;
   late TodoSchedules tds;
 
-  TodoProvider() {
-    sharedInstance = this;
+  TodoProvider._internalConstrutor() {
     tds = TodoSchedules();
     BeginProvider();
   }
+
+  factory TodoProvider() {
+    return sharedInstance;
+  }
+
+  // TodoProvider() {
+  //   sharedInstance = this;
+  //   tds = TodoSchedules();
+  //   BeginProvider();
+  // }
 
   void BeginProvider() async {
     await tds.init();
     areAllChecked();
     notifyListeners();
   }
-
-  // Future<void> SyncTodos() async {
-  //   List<int> MarkedIds = getMarked();
-  //   areAllChecked();
-  //   tds.fetchTodoItems();
-  //   await tds.updateTodos(forceResync: true, MarkedIds: MarkedIds);
-  //   areAllChecked();
-  //   notifyListeners();
-  // }
 
   Future updateFetch() async {
     await tds.updateTodos(available: true);
@@ -42,13 +42,12 @@ class TodoProvider extends ChangeNotifier {
 
   List<int> getMarked() {
     List<int> Marked = [];
-    tds.Todos.forEach((element) {
+    for (var element in tds.Todos) {
       if (element.done) {
         Marked.add(element.s.Id!);
       }
-    });
-    print('Marked Sid');
-    print(Marked.toString());
+    }
+
     return Marked;
   }
 

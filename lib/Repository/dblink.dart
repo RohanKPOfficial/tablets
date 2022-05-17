@@ -1,28 +1,28 @@
-import 'dart:convert';
-import 'dart:ui';
 import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
 import 'package:tablets/Models/DbTodo.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as Path;
-import 'package:tablets/BlocsNProviders/TodoProvider.dart';
-import 'package:tablets/Models/DbTodo.dart';
 import 'package:tablets/Models/Medicine.dart';
 import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/TodoSchedules.dart';
 import 'package:tablets/Models/inventoryItem.dart';
-import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/Models/reminderList.dart';
 
 import 'Notifier.dart';
 
 class DatabaseLink {
-  var dbInstance, dbInstance2;
+  // var dbInstance,
+  var dbInstance2;
   // var inventoryDBInstance;
-  static late DatabaseLink link;
-  DatabaseLink() {
-    link = this;
+  static late DatabaseLink link = DatabaseLink._internalLinkConstructor();
+
+  DatabaseLink._internalLinkConstructor();
+
+  factory DatabaseLink() {
+    // link = this;
+    return link;
   }
 
   void RecreateTables() async {
@@ -99,7 +99,7 @@ class DatabaseLink {
   Future<void> MarkTodo(SId, {int markValue = 1}) async {
     var db = await dbInstance2;
     await db.rawQuery(
-        '''UPDATE TodoSchedules SET Marked=${markValue} WHERE SId=${SId}''');
+        '''UPDATE TodoSchedules SET Marked=$markValue WHERE SId=$SId''');
   }
 
   Future<int> InsertMedicine(Medicine med) async {
@@ -107,19 +107,19 @@ class DatabaseLink {
       var db = await dbInstance2;
       int id = await db.insert('Medicines', med.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace);
-
-      print('===Query Medicines=============');
       List<Map<String, dynamic>> result = await db.query('Medicines');
-      result.forEach((ele) => {
-            print("" +
-                ele["Id"].toString() +
-                " " +
-                ele["Name"] +
-                " " +
-                ele["Type"] +
-                " returned id" +
-                id.toString())
-          });
+      // for (var ele in result) {
+      //   {
+      //       print("" +
+      //           ele["Id"].toString() +
+      //           " " +
+      //           ele["Name"] +
+      //           " " +
+      //           ele["Type"] +
+      //           " returned id" +
+      //           id.toString());
+      //     }
+      // }
 
       return id;
     } catch (e) {
@@ -169,6 +169,14 @@ class DatabaseLink {
     }
   }
 
+  Future<int> getNotifId(int SId) async {
+    var db = await dbInstance2;
+    List<Map<String, dynamic>> maps =
+        await db.rawQuery('''SELECT NotifId from Schedules where Id=$SId''');
+
+    return maps[0]['NotifId'];
+  }
+
   static Future<int> ConsumeMedicine(
       int MedId, String MedName, double units, int SId) async {
     InventoryItem i;
@@ -181,11 +189,8 @@ class DatabaseLink {
     } finally {
       i = await DatabaseLink.link.getInventoryItem(MedId);
     }
-
     if (i.medStock >= units) {
       i.medStock = i.medStock - units;
-
-      print('consumed ${units} units new stcok ${i.medStock}');
     } else {
       return 0;
     }
@@ -204,6 +209,8 @@ class DatabaseLink {
 
     await TodoSchedules.MarkTodoBySId(SId);
     await DatabaseLink.link.allDoneCheckNNotify();
+    int cancelId = await DatabaseLink().getNotifId(SId);
+    AwesomeNotifications().cancel(cancelId);
     return 1;
   }
 
@@ -250,10 +257,6 @@ class DatabaseLink {
     for (int i = 0; i < allItems.length; i++) {
       allItems[i].slist = await getSListByMedId(allItems[i].MedId!);
     }
-    // allItems.forEach((e) async {
-    //   e.slist = await getSListByMedId(e.MedId!);
-    // });
-    print(allItems.length.toString() + " Total Iteams7 in inventory");
     return allItems;
   } //checked
 
@@ -262,8 +265,11 @@ class DatabaseLink {
     List<Map<String, dynamic>> schedulesMapList =
         await db.query('Schedules', where: 'MedId=?', whereArgs: [MedId]);
     List<Schedule> scheduleList = [];
-    schedulesMapList
-        .forEach((ele) => {scheduleList.add(Schedule.toObject(ele))});
+    for (var ele in schedulesMapList) {
+      {
+        scheduleList.add(Schedule.toObject(ele));
+      }
+    }
     ScheduleList slist = ScheduleList(scheduleList);
     return slist;
   } //checked
@@ -281,7 +287,7 @@ class DatabaseLink {
     var db = await dbInstance2;
 
     List<Map<String, dynamic>> maps = await db.rawQuery(
-        '''Select *,m.Id as 'MId',m.Type as 'MType',s.Type as 'SType', s.Id as 'SId' from Schedules s join Medicines m on m.Id=s.MedId where s.Type='Daily' Or date=${day} Or day=${weekday}''');
+        '''Select *,m.Id as 'MId',m.Type as 'MType',s.Type as 'SType', s.Id as 'SId' from Schedules s join Medicines m on m.Id=s.MedId where s.Type='Daily' Or date=$day Or day=$weekday''');
     List<TodoItem> list = List.generate(maps.length, (index) {
       Map<String, dynamic> medMap = {
         'Name': maps[index]['Name'],
@@ -345,7 +351,6 @@ class DatabaseLink {
   Future<List<Medicine>> getMedicines() async {
     var db = await dbInstance2;
     final List<Map<String, dynamic>> maps = await db.query('Medicines');
-    // print("Avail meds ${maps.length}");
     List<Medicine> allMedicines = List.generate(maps.length, (i) {
       Medicine med = Medicine(maps[i]['Name'], isMedType(maps[i]['Type']));
       med.Id = maps[i]['Id'];
@@ -357,7 +362,7 @@ class DatabaseLink {
   Future<bool> TodoExists(int date, int month) async {
     var db = await dbInstance2;
     List<Map<String, dynamic>> maps = await db.query('Todo', limit: 1);
-    if (maps.length > 0) {
+    if (maps.isNotEmpty) {
       Map<String, dynamic> todo = maps[0];
       if (todo['Date'] == date && todo['MONTH'] == month) {
         return true;
@@ -384,17 +389,17 @@ class DatabaseLink {
   Future<void> deleteSchedule(int NotifId) async {
     cancelSchedule(NotifId);
     var db = await dbInstance2;
-    await db.rawQuery(''' DELETE FROM Schedules where Notifid=${NotifId} ''');
+    await db.rawQuery(''' DELETE FROM Schedules where Notifid=$NotifId ''');
     // TodoProvider.sharedInstance.SyncTodos();
   }
 
   Future<void> deleteMedicine(int? MedId) async {
     ScheduleList slist = await DatabaseLink.link.getSListByMedId(MedId!);
-    slist.scheduleList.forEach((element) {
+    for (var element in slist.scheduleList) {
       AwesomeNotifications().cancel(element.NotifId!);
-    });
+    }
     var db = await dbInstance2;
-    await db.rawQuery('''DELETE FROM Medicines where Id=${MedId}''');
+    await db.rawQuery('''DELETE FROM Medicines where Id=$MedId''');
     //
     // TodoProvider.sharedInstance.updateFetch();
     // InventoryRecon().update();

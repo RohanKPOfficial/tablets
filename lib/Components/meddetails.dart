@@ -1,16 +1,15 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
+import 'package:tablets/Components/AddReminder.dart';
 import 'package:tablets/Components/AppBodyUI.dart';
+import 'package:tablets/Components/confirmdelete.dart';
 import 'package:tablets/Config/partenrlinks.dart';
 import 'package:tablets/Models/Medicine.dart';
 import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/inventoryItem.dart';
 import 'package:tablets/Models/reminderList.dart';
-import 'package:tablets/Repository/Notifier.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
 
@@ -38,6 +37,7 @@ class _MedDetailsState extends State<MedDetails> {
         builder: (context, _inventoryRecon, _todoProvider, _) {
       InventoryItem i = _inventoryRecon.currentInventory[widget.InvIndex];
       return Scaffold(
+        backgroundColor: Colors.yellow.shade300,
         body: SafeArea(
           child: Stack(
             children: [
@@ -60,11 +60,11 @@ class _MedDetailsState extends State<MedDetails> {
                     child: Container(
                       height: getHeightByFactor(context, 0.05),
                       width: getHeightByFactor(context, 0.05),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: RiveAnimation.asset(
+                      child: const RiveAnimation.asset(
                         'Images/logo (2).riv',
                         controllers: [],
                         fit: BoxFit.scaleDown,
@@ -86,9 +86,11 @@ class _MedDetailsState extends State<MedDetails> {
                             tag: 'MedName${widget.InvIndex}',
                             child: Text(
                               '${i.medicine?.Name} ${Shorten(i.medicine?.Type ?? Medtype.Tablets)}',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                               style: TextStyle(
                                   color: Colors.black,
-                                  fontSize: getHeightByFactor(context, 0.05),
+                                  fontSize: getHeightByFactor(context, 0.03),
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -101,7 +103,7 @@ class _MedDetailsState extends State<MedDetails> {
                             i.medicine?.Type,
                           ),
                           size: getWidthByFactor(context, 0.25),
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                       ),
                       Expanded(
@@ -116,7 +118,7 @@ class _MedDetailsState extends State<MedDetails> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Container(
+                                child: SizedBox(
                                   // color: tileColor(i.medStock, 10),
                                   width: getFullWidth(context),
                                   height: getHeightByFactor(context, 0.13),
@@ -150,49 +152,71 @@ class _MedDetailsState extends State<MedDetails> {
                                                   },
                                                   keyboardType:
                                                       TextInputType.number,
-                                                  decoration: InputDecoration(
+                                                  decoration:
+                                                      const InputDecoration(
                                                     hintText: 'Restock Units',
                                                   ),
                                                   controller: controller,
                                                 ),
                                               ),
                                               TextButton(
-                                                onPressed: () {
-                                                  if (controller.text.isEmpty) {
-                                                    controller.text = '0';
-                                                  }
-                                                  int num = int.parse(
-                                                      controller.text);
-                                                  if (num >= 0) {
-                                                    controller.text =
-                                                        (num + 1).toString();
-                                                  }
-                                                },
-                                                child: Icon(Icons.add),
-                                              ),
+                                                  style: ElevatedButton.styleFrom(
+                                                      shape:
+                                                          const CircleBorder(),
+                                                      primary:
+                                                          Colors.grey.shade100),
+                                                  child: const Icon(Icons.add),
+                                                  onPressed: () {
+                                                    if (controller
+                                                        .text.isEmpty) {
+                                                      controller.text = '0';
+                                                    }
+                                                    int num = int.parse(
+                                                        controller.text);
+                                                    if (num >= 0) {
+                                                      controller.text =
+                                                          (num + 1).toString();
+                                                    }
+                                                  }),
                                               TextButton(
-                                                onPressed: () {
-                                                  if (controller.text.isEmpty) {
-                                                    controller.text = '0';
-                                                  }
-                                                  int num = int.parse(
-                                                      controller.text);
-                                                  if (num >= 1) {
-                                                    controller.text =
-                                                        (num - 1).toString();
-                                                  }
-                                                },
-                                                child: Icon(Icons.remove),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  i.medStock += int.parse(
-                                                      controller.text);
-                                                  DatabaseLink.link.updateStock(
-                                                      i.Id!, i.medStock);
-                                                  _inventoryRecon.update();
-                                                },
-                                                child: const Text('Restock'),
+                                                  style: ElevatedButton.styleFrom(
+                                                      shape:
+                                                          const CircleBorder(),
+                                                      primary:
+                                                          Colors.grey.shade100),
+                                                  child:
+                                                      const Icon(Icons.remove),
+                                                  onPressed: () {
+                                                    if (controller
+                                                        .text.isEmpty) {
+                                                      controller.text = '0';
+                                                    }
+                                                    int num = int.parse(
+                                                        controller.text);
+                                                    if (num >= 1) {
+                                                      controller.text =
+                                                          (num - 1).toString();
+                                                    }
+                                                  }),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                    color: Colors.grey.shade100,
+                                                    borderRadius: BorderRadius
+                                                        .all(Radius.circular(
+                                                            getWidthByFactor(
+                                                                context,
+                                                                0.1)))),
+                                                child: TextButton(
+                                                  onPressed: () async {
+                                                    i.medStock += int.parse(
+                                                        controller.text);
+                                                    DatabaseLink.link
+                                                        .updateStock(
+                                                            i.Id!, i.medStock);
+                                                    _inventoryRecon.update();
+                                                  },
+                                                  child: const Text('Restock'),
+                                                ),
                                               )
                                             ],
                                           ),
@@ -211,7 +235,7 @@ class _MedDetailsState extends State<MedDetails> {
                               Expanded(
                                 // height: getHeightByFactor(context, 0.35),
                                 // width: getFullWidth(context),
-                                child: i.slist.scheduleList.length == 0
+                                child: i.slist.scheduleList.isEmpty
                                     ? Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
@@ -239,20 +263,28 @@ class _MedDetailsState extends State<MedDetails> {
                                               ),
                                               Expanded(
                                                 flex: 2,
-                                                child: TextButton(
-                                                  onPressed: () async {
-                                                    await DatabaseLink.link
-                                                        .deleteSchedule(
-                                                            current[index]
-                                                                .NotifId!);
-                                                    _inventoryRecon.update();
-                                                    await _todoProvider.tds
-                                                        .updateTodos(
-                                                            available: true);
-                                                    _todoProvider
-                                                        .notifyListeners();
-                                                  },
-                                                  child: Icon(Icons.delete),
+                                                child: Tooltip(
+                                                  message:
+                                                      'Delete this Schedule',
+                                                  triggerMode:
+                                                      TooltipTriggerMode
+                                                          .longPress,
+                                                  child: TextButton(
+                                                    onPressed: () async {
+                                                      await DatabaseLink.link
+                                                          .deleteSchedule(
+                                                              current[index]
+                                                                  .NotifId!);
+                                                      _inventoryRecon.update();
+                                                      await _todoProvider.tds
+                                                          .updateTodos(
+                                                              available: true);
+                                                      _todoProvider
+                                                          .notifyListeners();
+                                                    },
+                                                    child: const Icon(
+                                                        Icons.delete),
+                                                  ),
                                                 ),
                                               )
                                             ],
@@ -271,7 +303,7 @@ class _MedDetailsState extends State<MedDetails> {
             ],
           ),
         ),
-        floatingActionButton: Container(
+        floatingActionButton: SizedBox(
           height: getHeightByFactor(context, 0.08),
           width: getHeightByFactor(context, 0.08),
           child: Consumer2<InventoryRecon, TodoProvider>(
@@ -279,14 +311,25 @@ class _MedDetailsState extends State<MedDetails> {
             return FittedBox(
               child: FloatingActionButton(
                 onPressed: () async {
-                  await DatabaseLink.link.deleteMedicine(i.medicine?.Id);
-                  Future.delayed(Duration(milliseconds: 700), () {
-                    _inventoryRecon.update();
-                    _tdProv.updateFetch();
-                  });
-                  Navigator.pop(context);
+                  List<Medicine> meds = await DatabaseLink.link.getMedicines();
+                  int selectedInd = 0;
+                  for (int j = 0; j < meds.length; j++) {
+                    if (meds[j].Id == i.medicine?.Id) {
+                      selectedInd = j;
+                      break;
+                    }
+                  }
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AddReminder(
+                          meds: meds,
+                          selectedIndex: selectedInd,
+                        );
+                      });
                 },
-                child: Icon(Icons.delete_forever),
+                tooltip: 'Delete ${i.medicine?.Name}',
+                child: const Icon(Icons.notification_add),
               ),
             );
           }),
@@ -294,7 +337,7 @@ class _MedDetailsState extends State<MedDetails> {
         floatingActionButtonLocation:
             FloatingActionButtonLocation.miniEndDocked,
         bottomNavigationBar: BottomAppBar(
-          shape: CircularNotchedRectangle(),
+          shape: const CircularNotchedRectangle(),
           notchMargin: 5,
           color: Colors.blue,
           child: Row(
@@ -302,15 +345,40 @@ class _MedDetailsState extends State<MedDetails> {
               Padding(
                   padding: const EdgeInsets.only(
                       left: 8, right: 8, top: 8, bottom: 20),
-                  child: FloatingActionButton(
-                    elevation: 0,
-                    heroTag: null,
-                    onPressed: () {
-                      LaunchPartenerSite();
-                    },
-                    child: Icon(
-                      Icons.shopping_bag,
-                      size: getWidthByFactor(context, 0.1),
+                  child: Tooltip(
+                    message: 'Order ${i.medicine!.Name} online',
+                    child: FloatingActionButton(
+                      elevation: 0,
+                      heroTag: null,
+                      onPressed: () {
+                        LaunchPartenerSite(i.medicine!.Name);
+                      },
+                      child: Icon(
+                        Icons.shopping_bag,
+                        size: getWidthByFactor(context, 0.1),
+                      ),
+                    ),
+                  )),
+              Padding(
+                  padding: const EdgeInsets.only(
+                      left: 8, right: 8, top: 8, bottom: 20),
+                  child: Tooltip(
+                    message: 'Order ${i.medicine!.Name} online',
+                    child: FloatingActionButton(
+                      elevation: 0,
+                      heroTag: null,
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return ConfirmDelete(Id: i.medicine!.Id!);
+                            });
+                      },
+                      tooltip: 'Delete ${i.medicine?.Name}',
+                      child: Icon(
+                        Icons.delete_forever,
+                        size: getWidthByFactor(context, 0.1),
+                      ),
                     ),
                   )),
             ],

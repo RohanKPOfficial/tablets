@@ -18,10 +18,16 @@ class InventoryRecon extends ChangeNotifier {
     return instance;
   }
 
-  Future update() async {
-    if (currentInventory.length == 0) {
-      print("empty inventory");
+  int getInvIndex(String MedicineName) {
+    for (int i = 0; i < currentInventory.length; i++) {
+      if (currentInventory[i].medicine!.Name == MedicineName) {
+        return i;
+      }
     }
+    return -1; //not found
+  }
+
+  Future update() async {
     currentInventory = await DatabaseLink.link.getInventoryItems();
     notifyListeners();
   }

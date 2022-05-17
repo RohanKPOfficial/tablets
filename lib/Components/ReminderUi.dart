@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:tablets/BlocsNProviders/SelectedDays.dart';
 import 'package:tablets/Models/reminderList.dart';
@@ -8,7 +9,7 @@ import 'package:tablets/sizer.dart';
 Widget ReminderUiBuilder(BuildContext context, String selected,
     int numReminders, ScheduleList schedules, int MedId) {
   if (selected == 'Daily') {
-    DateTime initTime = DateTime.now().add(Duration(minutes: 1));
+    DateTime initTime = DateTime.now().add(const Duration(minutes: 1));
     schedules.Modify([
       ReminderTimeList.ToSchedule(
           TimeOfDay(hour: initTime.hour, minute: initTime.minute), MedId)
@@ -37,16 +38,16 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.repeat),
-                    SizedBox(
+                    const Icon(Icons.repeat),
+                    const SizedBox(
                       width: 10,
                     ),
-                    Text('Repeat'),
+                    const Text('Repeat'),
                     TextButton(
                         style: ElevatedButton.styleFrom(
-                            shape: CircleBorder(),
+                            shape: const CircleBorder(),
                             primary: Colors.grey.shade100),
-                        child: Icon(Icons.remove),
+                        child: const Icon(Icons.remove),
                         onPressed: () {
                           if (reminderTimeList.myList.length > 1) {
                             numReminders--;
@@ -58,9 +59,9 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                     Text('${reminderTimeList.myList.length}'),
                     TextButton(
                         style: ElevatedButton.styleFrom(
-                            shape: CircleBorder(),
+                            shape: const CircleBorder(),
                             primary: Colors.grey.shade100),
-                        child: Icon(Icons.add),
+                        child: const Icon(Icons.add),
                         onPressed: () {
                           if (reminderTimeList.myList.length < 24) {
                             numReminders++;
@@ -73,7 +74,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 ),
               );
             }),
-            Container(
+            SizedBox(
               height: getHeightByFactor(context, 0.3),
               child: Scrollbar(
                 isAlwaysShown: true,
@@ -87,7 +88,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                             fontSize: getHeightByFactor(context, 0.04),
                             fontWeight: FontWeight.bold),
                       ),
-                      leading: Icon(Icons.timer),
+                      leading: const Icon(Icons.timer),
                       subtitle: Text('Reminder ${index + 1}'),
                       onTap: () async {
                         TimeOfDay? x = await showTimer(
@@ -107,7 +108,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
       }),
     );
   } else if (selected == 'Weekly') {
-    DateTime initTime = DateTime.now().add(Duration(minutes: 1));
+    DateTime initTime = DateTime.now().add(const Duration(minutes: 1));
     schedules.Modify([
       ReminderTimeList.ToSchedule(
           TimeOfDay(hour: initTime.hour, minute: initTime.minute), MedId)
@@ -132,10 +133,10 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 padding: const EdgeInsets.all(5),
                 child: Column(
                   children: [
-                    Text('Repeat Days'),
-                    Container(
+                    const Text('Repeat Days'),
+                    SizedBox(
                       width: getFullWidth(context),
-                      height: getHeightByFactor(context, 0.05),
+                      height: getHeightByFactor(context, 0.07),
                       child: ListView(
                           controller: _controller,
                           scrollDirection: Axis.horizontal,
@@ -143,9 +144,11 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                             Consumer<SelectedDays>(
                                 builder: (context, selectedDays, _) {
                               return ToggleButtons(
+                                borderRadius: BorderRadius.all(Radius.circular(
+                                    getWidthByFactor(context, 0.04))),
                                 selectedColor: Colors.primaries.first,
                                 isSelected: selectedDays.selectedElements,
-                                children: [
+                                children: const [
                                   Text('Mo'),
                                   Text('Tu'),
                                   Text('We'),
@@ -161,19 +164,19 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                             }),
                           ]),
                     ),
-                    Text('Repeat per Day'),
+                    const Text('Repeat per Day'),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.repeat),
-                        SizedBox(
+                        const Icon(Icons.repeat),
+                        const SizedBox(
                           width: 10,
                         ),
                         TextButton(
                             style: ElevatedButton.styleFrom(
-                                shape: CircleBorder(),
+                                shape: const CircleBorder(),
                                 primary: Colors.grey.shade100),
-                            child: Icon(Icons.remove),
+                            child: const Icon(Icons.remove),
                             onPressed: () {
                               if (reminderTimeList.myList.length > 1) {
                                 numReminders--;
@@ -185,9 +188,9 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                         Text('${reminderTimeList.myList.length}'),
                         TextButton(
                             style: ElevatedButton.styleFrom(
-                                shape: CircleBorder(),
+                                shape: const CircleBorder(),
                                 primary: Colors.grey.shade100),
-                            child: Icon(Icons.add),
+                            child: const Icon(Icons.add),
                             onPressed: () {
                               if (reminderTimeList.myList.length < 24) {
                                 numReminders++;
@@ -202,7 +205,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 ),
               );
             }),
-            Container(
+            SizedBox(
               height: getHeightByFactor(context, 0.2),
               child: Scrollbar(
                 isAlwaysShown: true,
@@ -216,7 +219,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                             fontSize: getHeightByFactor(context, 0.04),
                             fontWeight: FontWeight.bold),
                       ),
-                      leading: Icon(Icons.timer),
+                      leading: const Icon(Icons.timer),
                       subtitle: Text('Reminder ${index + 1}'),
                       onTap: () async {
                         TimeOfDay? x = await showTimer(
@@ -234,7 +237,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
           ],
         ));
   } else {
-    DateTime initTime = DateTime.now().add(Duration(minutes: 1));
+    DateTime initTime = DateTime.now().add(const Duration(minutes: 1));
     schedules.Modify([
       ReminderTimeList.ToSchedule(
           TimeOfDay(hour: initTime.hour, minute: initTime.minute), MedId)
@@ -255,15 +258,17 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 padding: const EdgeInsets.all(5),
                 child: Column(
                   children: [
-                    Text('Repeat Dates'),
-                    Container(
+                    const Text('Repeat Dates'),
+                    SizedBox(
                       width: getFullWidth(context),
-                      height: getHeightByFactor(context, 0.08),
+                      height: getHeightByFactor(context, 0.07),
                       child:
                           ListView(scrollDirection: Axis.horizontal, children: [
                         Consumer<SelectedMonths>(
                             builder: (context, _selectedMonths, _) {
                           return ToggleButtons(
+                            borderRadius: BorderRadius.all(Radius.circular(
+                                getWidthByFactor(context, 0.04))),
                             selectedColor: Colors.primaries.first,
                             isSelected: _selectedMonths.selectedElements,
                             direction: Axis.horizontal,
@@ -276,19 +281,19 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                         }),
                       ]),
                     ),
-                    Text('Repeat per Day'),
+                    const Text('Repeat per Day'),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.repeat),
-                        SizedBox(
+                        const Icon(Icons.repeat),
+                        const SizedBox(
                           width: 10,
                         ),
                         TextButton(
                             style: ElevatedButton.styleFrom(
-                                shape: CircleBorder(),
+                                shape: const CircleBorder(),
                                 primary: Colors.grey.shade100),
-                            child: Icon(Icons.remove),
+                            child: const Icon(Icons.remove),
                             onPressed: () {
                               if (reminderTimeList.myList.length > 1) {
                                 numReminders--;
@@ -300,9 +305,9 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                         Text('${reminderTimeList.myList.length}'),
                         TextButton(
                             style: ElevatedButton.styleFrom(
-                                shape: CircleBorder(),
+                                shape: const CircleBorder(),
                                 primary: Colors.grey.shade100),
-                            child: Icon(Icons.add),
+                            child: const Icon(Icons.add),
                             onPressed: () {
                               if (reminderTimeList.myList.length < 24) {
                                 numReminders++;
@@ -317,7 +322,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 ),
               );
             }),
-            Container(
+            SizedBox(
               height: getHeightByFactor(context, 0.2),
               child: Scrollbar(
                 isAlwaysShown: true,
@@ -331,7 +336,7 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                             fontSize: getHeightByFactor(context, 0.04),
                             fontWeight: FontWeight.bold),
                       ),
-                      leading: Icon(Icons.timer),
+                      leading: const Icon(Icons.timer),
                       subtitle: Text('Reminder ${index + 1}'),
                       onTap: () async {
                         TimeOfDay? x = await showTimer(

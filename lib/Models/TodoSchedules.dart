@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:tablets/Models/DbTodo.dart';
-import 'package:tablets/Models/Medicine.dart';
 import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/reminderList.dart';
 import 'package:tablets/Repository/dblink.dart';
@@ -35,11 +33,9 @@ class TodoSchedules {
         ? available
         : await DatabaseLink.link.TodoExists(today.day, today.month);
     if (exists) {
-      print("TODOS Exist fetch from table");
       Todos = await DatabaseLink.link.getTodos();
       Todos.sort();
     } else {
-      print("Does not exist rebuilding todos tables");
       await DatabaseLink.link.purgeTodos();
       await fetchTodoItems();
       Todos.sort();

@@ -14,15 +14,15 @@ class TodoItem implements Comparable {
 
   @override
   int compareTo(other) {
-    int t1 = this.s.hour * 60 + this.s.minute;
+    int t1 = s.hour * 60 + s.minute;
     int t2 = other.s.hour * 60 + other.s.minute;
     return t1.compareTo(t2);
   }
 
   static String to12Hour(int hour, int minute) {
     int _12hr = hour % 12;
-    String _am_pm = hour >= 12 ? 'pm' : 'am';
-
-    return '${_12hr == 0 ? 12 : _12hr} : $minute $_am_pm';
+    String AmPm = hour >= 12 ? 'pm' : 'am';
+    String minText = minute < 10 ? '0$minute' : minute.toString();
+    return '${_12hr == 0 ? 12 : _12hr} : $minText $AmPm';
   }
 }

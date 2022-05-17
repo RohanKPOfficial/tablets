@@ -1,10 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:rive/rive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tablets/main.dart';
+import 'package:tablets/ShowCase/showcaser.dart';
 import 'package:tablets/sizer.dart';
 
 class NameScreen extends StatefulWidget {
@@ -18,16 +16,17 @@ class NameScreen extends StatefulWidget {
   State<NameScreen> createState() => _NameScreenState();
 }
 
-class _NameScreenState extends State<NameScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController controller;
+class _NameScreenState extends State<NameScreen> with TickerProviderStateMixin {
+  late AnimationController controller, SpinnerController;
   late Animation _walkAnim;
 
   @override
   void initState() {
     super.initState();
     controller = AnimationController(
-        duration: Duration(seconds: 3, milliseconds: 500), vsync: this);
+        duration: const Duration(seconds: 3, milliseconds: 500), vsync: this);
+    SpinnerController =
+        AnimationController(vsync: this, duration: Duration(seconds: 2));
     _walkAnim = Tween<double>(begin: 0.05, end: 0.9).animate(controller);
     _walkAnim.addListener(() {
       setState(() {});
@@ -45,17 +44,17 @@ class _NameScreenState extends State<NameScreen>
         Navigator.pushReplacement(
             context,
             PageRouteBuilder(
-                transitionDuration: Duration(seconds: 2),
-                pageBuilder: (_, __, ___) =>
-                    MyHomePage(title: 'Tablets', userName: Name)));
+                transitionDuration: const Duration(seconds: 2),
+                pageBuilder: (_, __, ___) => Introduction(User: Name)));
       }
     });
   }
 
   @override
   void dispose() {
-    super.dispose();
     controller.dispose();
+    SpinnerController.dispose();
+    super.dispose();
   }
 
   @override
@@ -77,7 +76,7 @@ class _NameScreenState extends State<NameScreen>
                   tag: 'HeroName',
                   child: Container(
                     child: Text(
-                      '${widget.text}',
+                      widget.text,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Colors.black,
                           fontSize: getWidthByFactor(context, 0.045),
@@ -94,11 +93,11 @@ class _NameScreenState extends State<NameScreen>
                 child: Container(
                   height: getHeightByFactor(context, 0.05),
                   width: getHeightByFactor(context, 0.05),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: RiveAnimation.asset(
+                  child: const RiveAnimation.asset(
                     'Images/logo (2).riv',
                     controllers: [],
                     fit: BoxFit.scaleDown,
@@ -107,66 +106,71 @@ class _NameScreenState extends State<NameScreen>
                 ),
               ),
             ),
-            Center(
-              child: Container(
-                width: getWidthByFactor(context, 0.6),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    // left: getWidthByFactor(context, _walkAnim.value),
-                    // top: getHeightByFactor(context, 0.06),
-                    // child:
-
-                    // Container(
-                    //   height: 400,
-                    //   width: ,
-                    //   child: Stack(
-                    //     fit: StackFit.loose,
-                    //     children: [
-                    //
-                    //     ],
-                    //   ),
-                    // ),
-                    Text(
-                      'What should I call you?',
-                      style: TextStyle(
-                          fontSize: getWidthByFactor(context, 0.1),
-                          fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(
-                      height: getHeightByFactor(context, 0.05),
-                    ),
-                    Row(
+            controller.isAnimating
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: TextField(
-                              onSubmitted: (String x) {
-                                redirCheck(widget.cont);
-                                setState(() {
-                                  widget.flying = true;
-                                  widget.text = widget.cont.text;
-                                });
-                              },
-                              style: TextStyle(
-                                  fontSize: getWidthByFactor(context, 0.045),
-                                  fontWeight: FontWeight.normal),
-                              controller: widget.cont,
-                              maxLength: 20,
-                              decoration: InputDecoration(
-                                  hintText: 'Please Provide a First Name',
-                                  errorText: widget.InputError
-                                      ? "Name Can't be empty"
-                                      : null)),
+                        SpinKitThreeBounce(
+                            color: Colors.blue,
+                            size: getWidthByFactor(context, 0.1),
+                            controller: SpinnerController),
+                        SizedBox(
+                          height: getHeightByFactor(context, 0.05),
                         ),
+                        Text('Setting things up ...'),
                       ],
                     ),
-                    SizedBox(
-                      height: getHeightByFactor(context, 0.1),
+                  )
+                : Center(
+                    child: SizedBox(
+                      width: getWidthByFactor(context, 0.6),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            'What should I call you?',
+                            style: TextStyle(
+                                fontSize: getWidthByFactor(context, 0.1),
+                                fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(
+                            height: getHeightByFactor(context, 0.05),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                    onSubmitted: (String x) {
+                                      redirCheck(widget.cont);
+                                      setState(() {
+                                        widget.flying = true;
+                                        widget.text = widget.cont.text;
+                                      });
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus();
+                                    },
+                                    style: TextStyle(
+                                        fontSize:
+                                            getWidthByFactor(context, 0.045),
+                                        fontWeight: FontWeight.normal),
+                                    controller: widget.cont,
+                                    maxLength: 20,
+                                    decoration: InputDecoration(
+                                        hintText: 'Please Provide a First Name',
+                                        errorText: widget.InputError
+                                            ? "Name Can't be empty"
+                                            : null)),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: getHeightByFactor(context, 0.1),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
           ],
         ),
       ),
@@ -174,7 +178,7 @@ class _NameScreenState extends State<NameScreen>
         onPressed: () async {
           redirCheck(widget.cont);
         },
-        child: Icon(Icons.arrow_forward),
+        child: const Icon(Icons.arrow_forward),
       ),
     );
   }
@@ -182,6 +186,7 @@ class _NameScreenState extends State<NameScreen>
   void redirCheck(TextEditingController cont) async {
     if (cont.text.isNotEmpty) {
       controller.forward();
+      FocusManager.instance.primaryFocus?.unfocus();
     } else {
       setState(() {
         widget.InputError = true;

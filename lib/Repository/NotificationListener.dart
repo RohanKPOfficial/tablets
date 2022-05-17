@@ -1,23 +1,41 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
 import 'package:tablets/BlocsNProviders/TodoProvider.dart';
+import 'package:tablets/Components/meddetails.dart';
+import 'package:tablets/Config/partenrlinks.dart';
 import 'package:tablets/Repository/Notifier.dart';
 import 'package:tablets/Repository/dblink.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../BlocsNProviders/InventoryProvider.dart';
-import '../Config/partenrlinks.dart';
-import '../main.dart';
+import 'navkey.dart';
 
 class NotificationReaction {
   static Future<void> onActionReceivedMethod(ReceivedAction action) async {
-    if (action != null) {
+    if (action.actionType == ActionType.Default) {
+      onTapAction tapAction = toOnTapAction(action.payload!["onTapAction"]!);
+      switch (tapAction) {
+        case onTapAction.NoInv:
+          if (action.actionLifeCycle == NotificationLifeCycle.Foreground ||
+              action.actionLifeCycle == NotificationLifeCycle.Background) {
+            int InvId =
+                (InventoryRecon().getInvIndex(action.payload!['MedName']!));
+            navkey.currentState!.push(MaterialPageRoute(
+                builder: (context) => MedDetails(InvIndex: (InvId))));
+          }
+
+          break;
+        case onTapAction.LoStock:
+          LaunchPartenerSite();
+          break;
+        case onTapAction.Reminder:
+          break;
+        default:
+          break;
+      }
+    } else {
+      //here if user taps on an action button
       if (action.buttonKeyPressed == "MarkTaken") {
-        // print("here");
-        // AwesomeNotifications().dismiss(action.id!);
         Map<String, String> receivedPayload = action.payload!;
         int MedId = int.parse(receivedPayload["MedId"]!);
-        ;
         String medName = receivedPayload["MedicineName"].toString();
         String medType = receivedPayload["MedicineType"].toString();
         int SId = int.parse(action.payload!['SId'].toString());
@@ -26,11 +44,7 @@ class NotificationReaction {
         int _success =
             await DatabaseLink.ConsumeMedicine(MedId, medName, Dosage, SId);
 
-        print("ScheduleId " + action.payload!['SId'].toString());
         if (_success == 1) {
-          print("MarkTaken");
-          print(
-              "life cycle ${WidgetsBinding.instance?.lifecycleState.toString()}");
           if (WidgetsBinding.instance?.lifecycleState ==
                   AppLifecycleState.paused ||
               WidgetsBinding.instance?.lifecycleState ==
@@ -44,17 +58,24 @@ class NotificationReaction {
           AwesomeNotifications().dismiss(action.id!);
         } else {
           NoInventoryNotif(medName);
-          print("Unable to consume");
         }
       } else if (action.buttonKeyPressed == "Snooze") {
         Snooze10min(action);
         AwesomeNotifications().dismiss(action.id!);
       } else if (action.buttonKeyPressed == "OrderOnline") {
-        print("Ordering");
         LaunchPartenerSite();
+        AwesomeNotifications().dismiss(action.id!);
       } else if (action.buttonKeyPressed == "OnlineMedSearch") {
         LaunchPartenerSite(action.payload!['MedName']?.toString());
+        AwesomeNotifications().dismiss(action.id!);
       }
+    }
+  }
+
+  static Future<void> onDisplayedAction(ReceivedNotification action) async {
+    if (action.displayedLifeCycle == NotificationLifeCycle.Foreground ||
+        action.displayedLifeCycle == NotificationLifeCycle.Background) {
+      TodoProvider().updateFetch();
     }
   }
 }

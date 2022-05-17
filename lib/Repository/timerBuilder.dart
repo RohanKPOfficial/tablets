@@ -6,3 +6,12 @@ Future<TimeOfDay?> showTimer(TimeOfDay initTime, BuildContext context) async {
     context: context,
   );
 }
+
+bool EarlierThanNow(int hour, int minute) {
+  TimeOfDay now = TimeOfDay.now();
+  if (hour == now.hour && minute <= now.minute || hour < now.hour) {
+    return true;
+  } else {
+    return false;
+  }
+}
