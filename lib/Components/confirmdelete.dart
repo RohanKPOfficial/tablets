@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
 import 'package:tablets/BlocsNProviders/TodoProvider.dart';
 import 'package:tablets/Repository/dblink.dart';
+import 'package:tablets/ShowCase/showcaser.dart';
 import 'package:tablets/sizer.dart';
 
 class ConfirmDelete extends StatelessWidget {
@@ -17,9 +17,6 @@ class ConfirmDelete extends StatelessWidget {
         'Sure to Delete ?',
         textAlign: TextAlign.center,
       ),
-      // content: Container(
-      //   child: ,
-      // ),
       actions: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -27,12 +24,13 @@ class ConfirmDelete extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 await DatabaseLink.link.deleteMedicine(Id);
-                Future.delayed(const Duration(milliseconds: 950), () {
+                Navigator.popUntil(
+                    context, (Route<dynamic> route) => route.isFirst);
+
+                Future.delayed(const Duration(seconds: 1), () {
                   InventoryRecon().update();
                   TodoProvider().updateFetch();
                 });
-                Navigator.pop(context);
-                Navigator.pop(context);
               },
               child: const Text('Yes'),
               style: ElevatedButton.styleFrom(

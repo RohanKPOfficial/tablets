@@ -1,5 +1,5 @@
 import 'dart:ui';
-
+import 'package:basic_utils/basic_utils.dart' as Stringy;
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
@@ -14,18 +14,20 @@ import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/inventoryItem.dart';
 import 'package:tablets/Models/reminderList.dart';
 import 'package:tablets/Monetisation/ad_helper.dart';
+import 'package:tablets/Monetisation/adtile.dart';
+import 'package:tablets/Repository/SharedPrefs.dart';
 import 'package:tablets/Repository/Snacker.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
 
 import 'package:tablets/BlocsNProviders/TodoProvider.dart';
 
+import '../Monetisation/interstitialengine.dart';
 import '../Repository/timerBuilder.dart';
 import '../ShowCase/showcaser.dart';
 
 class BodyWidget2 extends StatefulWidget {
-  BodyWidget2({required this.userName});
-  String userName;
+  BodyWidget2();
 
   @override
   State<BodyWidget2> createState() => _BodyWidget2State();
@@ -35,6 +37,7 @@ class _BodyWidget2State extends State<BodyWidget2> {
   List<TodoItem> pending = [];
 
   late BannerAd _bannerAd;
+  // InterstitialAd? interstitialAd;
 
   bool _isBannerAdReady = false;
   @override
@@ -46,7 +49,7 @@ class _BodyWidget2State extends State<BodyWidget2> {
     loadAds();
   }
 
-  Future<void> loadAds() async {
+  loadAds() {
     _bannerAd = BannerAd(
       adUnitId: AdHelper.bannerAdUnitId,
       request: const AdRequest(),
@@ -65,7 +68,20 @@ class _BodyWidget2State extends State<BodyWidget2> {
       ),
     );
 
+    // InterstitialAd.load(
+    //     adUnitId: AdHelper.interstitialAdUnitId,
+    //     request: AdRequest(),
+    //     adLoadCallback: InterstitialAdLoadCallback(
+    //       onAdLoaded: (InterstitialAd ad) {
+    //         // Keep a reference to the ad so you can show it later.
+    //         interstitialAd = ad;
+    //       },
+    //       onAdFailedToLoad: (LoadAdError error) {
+    //         print('InterstitialAd failed to load: $error');
+    //       },
+    //     ));
     _bannerAd.load();
+    InterstitialEngine();
   }
 
   @override
@@ -112,7 +128,9 @@ class _BodyWidget2State extends State<BodyWidget2> {
                                   changeNamePopup(context);
                                 },
                                 child: Text(
-                                  widget.userName,
+                                  Stringy.StringUtils.capitalize(
+                                      SharedPref().obj!.getString('UserName')!,
+                                      allWords: true),
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleSmall
@@ -176,87 +194,88 @@ class _BodyWidget2State extends State<BodyWidget2> {
                   color: Colors.white,
                   height: getFullHeight(context),
                   child: Consumer<InventoryRecon>(
-                      builder: (context, _inventoryRecon, _) {
-                    return Card(
-                      color: Colors.grey.shade100,
-                      child: Column(
-                        children: _inventoryRecon.currentInventory.isEmpty
-                            ? [
-                                Expanded(
-                                  child: ListView(
-                                    controller: controller,
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                            top: getHeightByFactor(
-                                                context, 0.1)),
-                                        child: const Center(
-                                            child: Text(
-                                                'No medicines in inventory add one by tapping \'+\'')),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ]
-                            : [
-                                const Icon(Icons.keyboard_arrow_up),
-                                Expanded(
-                                  child: GridView(
-                                    controller: controller,
-                                    physics: const BouncingScrollPhysics(),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 2,
-                                            crossAxisSpacing: 4.0,
-                                            mainAxisSpacing: 4.0),
-                                    children: List.generate(
-                                        _inventoryRecon
-                                                .currentInventory.length +
-                                            1, (index) {
-                                      if (index <
-                                          _inventoryRecon
-                                              .currentInventory.length) {
-                                        InventoryItem current = _inventoryRecon
-                                            .currentInventory[index];
-                                        return Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: inventorytile(
-                                            invIndex: index,
-                                            item: current,
-                                            context: context,
+                      builder: (context, _inventoryRecon, child) {
+                        return Card(
+                          color: Colors.grey.shade100,
+                          child: Column(
+                            children: _inventoryRecon.currentInventory.isEmpty
+                                ? [
+                                    Expanded(
+                                      child: ListView(
+                                        controller: controller,
+                                        children: [
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                                top: getHeightByFactor(
+                                                    context, 0.1)),
+                                            child: const Center(
+                                                child: Text(
+                                                    'No medicines in inventory add one by tapping \'+\'')),
                                           ),
-                                        );
-                                      } else {
-                                        Widget adTile = const Text('');
-                                        if (_isBannerAdReady) {
-                                          _bannerAd.dispose();
-                                          loadAds();
-                                          adTile = ClipRRect(
-                                            child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              physics:
-                                                  const BouncingScrollPhysics(),
-                                              child: SizedBox(
-                                                width: _bannerAd.size.width
-                                                    .toDouble(),
-                                                height: _bannerAd.size.height
-                                                    .toDouble(),
-                                                child: AdWidget(ad: _bannerAd),
-                                              ),
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          );
-                                        }
-                                        return adTile;
-                                      }
-                                    }),
-                                  ),
-                                ),
-                              ],
-                      ),
-                    );
-                  }),
+                                        ],
+                                      ),
+                                    )
+                                  ]
+                                : [
+                                    const Icon(Icons.keyboard_arrow_up),
+                                    Expanded(
+                                      child: GridView(
+                                        controller: controller,
+                                        physics: const BouncingScrollPhysics(),
+                                        gridDelegate:
+                                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 2,
+                                                crossAxisSpacing: 4.0,
+                                                mainAxisSpacing: 4.0),
+                                        children: List.generate(
+                                          _inventoryRecon
+                                                  .currentInventory.length +
+                                              1,
+                                          (index) {
+                                            if (index > 1) {
+                                              InventoryItem current =
+                                                  _inventoryRecon
+                                                          .currentInventory[
+                                                      index - 1];
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: inventorytile(
+                                                  invIndex: index,
+                                                  item: current,
+                                                  context: context,
+                                                ),
+                                              );
+                                            } else {
+                                              if (index == 0) {
+                                                InventoryItem current =
+                                                    _inventoryRecon
+                                                            .currentInventory[
+                                                        index];
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: inventorytile(
+                                                    invIndex: index,
+                                                    item: current,
+                                                    context: context,
+                                                  ),
+                                                );
+                                              }
+                                              return child!;
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                          ),
+                        );
+                      },
+                      child: adtile(
+                        bannerAd: _bannerAd,
+                        bannerReady: _isBannerAdReady,
+                      )),
                 ),
               ),
             ),
@@ -312,7 +331,7 @@ class _BodyWidget2State extends State<BodyWidget2> {
 
   void changeNamePopup(BuildContext context) {
     TextEditingController controller = TextEditingController();
-    controller.text = widget.userName;
+    controller.text = SharedPref().obj!.getString('UserName')!;
     showDialog(
         context: context,
         builder: (context) {
@@ -353,7 +372,7 @@ class _BodyWidget2State extends State<BodyWidget2> {
                           await SharedPreferences.getInstance();
                       await Prefs.setString('UserName', controller.text);
                       setState(() {
-                        widget.userName = controller.text;
+                        // widget.userName = controller.text;
                       });
                       Navigator.pop(context);
                     }

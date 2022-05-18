@@ -21,7 +21,6 @@ class _SplasherState extends State<Splasher> {
 
   void delayedNameCheckRedir() async {
     SharedPreferences instance = await SharedPreferences.getInstance();
-    instance.remove('UserName');
     await Future.delayed(const Duration(seconds: 3));
     String? Name = instance.getString('UserName');
     if (Name == null) {
@@ -35,7 +34,7 @@ class _SplasherState extends State<Splasher> {
           context,
           PageRouteBuilder(
               transitionDuration: const Duration(seconds: 2),
-              pageBuilder: (_, __, ___) => Introduction(User: Name)));
+              pageBuilder: (_, __, ___) => Introduction()));
     }
   }
 

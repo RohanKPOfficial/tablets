@@ -45,7 +45,7 @@ class _NameScreenState extends State<NameScreen> with TickerProviderStateMixin {
             context,
             PageRouteBuilder(
                 transitionDuration: const Duration(seconds: 2),
-                pageBuilder: (_, __, ___) => Introduction(User: Name)));
+                pageBuilder: (_, __, ___) => Introduction()));
       }
     });
   }

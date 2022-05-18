@@ -227,7 +227,7 @@ void LowStockNotif(String lowStockMed, int left) {
 void AllTodosDoneNotif() {
   AwesomeNotifications().createNotification(
     content: NotificationContent(
-        autoDismissible: false,
+        autoDismissible: true,
         locked: false,
         bigPicture: 'asset://Images/allDone.jpg',
         notificationLayout: NotificationLayout.BigPicture,

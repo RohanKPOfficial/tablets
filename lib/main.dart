@@ -6,6 +6,7 @@ import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
 import 'package:tablets/Components/splashscreen.dart';
 import 'package:tablets/Monetisation/ad_helper.dart';
 import 'package:tablets/Repository/Notifier.dart';
+import 'package:tablets/Repository/SharedPrefs.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:flutter/services.dart';
 import 'package:tablets/BlocsNProviders/TodoProvider.dart';
@@ -17,6 +18,7 @@ void main() async {
   AdHelper.initGoogleMobileAds();
   initNotificationService();
   DatabaseLink(); //initialize DbLinks
+  SharedPref();
   await DatabaseLink.link.initNewDB();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -42,6 +44,17 @@ class MyApp extends StatelessWidget {
           PointerDeviceKind.stylus,
           PointerDeviceKind.unknown
         }),
+        builder: (BuildContext context, Widget? widget) {
+          ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [Text('AwSnap!'), Text('Something Broke 😋')],
+              ),
+            );
+          };
+          return widget!;
+        },
         title: 'Tablets',
         theme: ThemeData(),
         home: const Splasher(),

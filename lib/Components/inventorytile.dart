@@ -28,7 +28,7 @@ class inventorytile extends StatelessWidget {
             PageRouteBuilder(
                 transitionDuration: const Duration(milliseconds: 350),
                 pageBuilder: (_, __, ___) => MedDetails(
-                      InvIndex: invIndex,
+                      InvIndex: invIndex > 1 ? invIndex - 1 : invIndex,
                     )));
       },
       child: Container(

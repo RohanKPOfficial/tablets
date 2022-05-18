@@ -51,6 +51,7 @@ dependencies:
   showcaseview: ^1.1.5
   google_mobile_ads: ^1.2.0
   flutter_spinkit: ^5.1.0
+  basic_utils: ^4.2.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

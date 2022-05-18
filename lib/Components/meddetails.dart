@@ -10,6 +10,7 @@ import 'package:tablets/Models/Medicine.dart';
 import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/inventoryItem.dart';
 import 'package:tablets/Models/reminderList.dart';
+import 'package:tablets/Monetisation/interstitialengine.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
 
@@ -351,6 +352,7 @@ class _MedDetailsState extends State<MedDetails> {
                       elevation: 0,
                       heroTag: null,
                       onPressed: () {
+                        InterstitialEngine().showAd();
                         LaunchPartenerSite(i.medicine!.Name);
                       },
                       child: Icon(

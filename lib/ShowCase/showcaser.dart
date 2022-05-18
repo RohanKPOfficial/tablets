@@ -15,13 +15,15 @@ class ShowCaser {
 }
 
 class Introduction extends StatelessWidget {
-  const Introduction({Key? key, required this.User}) : super(key: key);
-  final String User;
+  const Introduction({
+    Key? key,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return ShowCaseWidget(
       builder: Builder(
-        builder: (context) => MyHomePage(title: 'Tablets', userName: User),
+        builder: (context) => MyHomePage(title: 'Tablets'),
       ),
     );
   }

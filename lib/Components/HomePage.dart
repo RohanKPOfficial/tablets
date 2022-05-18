@@ -11,11 +11,13 @@ import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/ShowCase/showcaser.dart';
 import 'package:tablets/sizer.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title, required this.userName})
-      : super(key: key);
+import '../Monetisation/interstitialengine.dart';
 
-  final String title, userName;
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key? key, required this.title}) : super(key: key);
+
+  final String title;
+  late String userName;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -43,9 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: BodyWidget2(
-        userName: widget.userName,
-      ),
+      body: BodyWidget2(),
       floatingActionButton: Showcase(
         shapeBorder: const CircleBorder(),
         key: ShowCaser.keys[1],
@@ -103,6 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   heroTag: null,
                   tooltip: 'Shop for Medicines',
                   onPressed: () {
+                    InterstitialEngine().showAd();
                     LaunchPartenerSite();
                   },
                   child: Icon(
