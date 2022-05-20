@@ -1,299 +1,503 @@
+import 'dart:ui';
+import 'package:basic_utils/basic_utils.dart' as Stringy;
 import 'package:flutter/material.dart';
-// import 'package:path/path.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
-import 'package:tablets/Blocs/InventoryProvider.dart';
-import 'package:tablets/Components/PlusSymbol.dart';
+import 'package:rive/rive.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
+import 'package:tablets/Components/inventorytile.dart';
+import 'package:tablets/Components/meddetails.dart';
+import 'package:tablets/Models/Medicine.dart';
+import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/inventoryItem.dart';
 import 'package:tablets/Models/reminderList.dart';
+import 'package:tablets/Monetisation/ad_helper.dart';
+import 'package:tablets/Monetisation/adtile.dart';
+import 'package:tablets/Repository/SharedPrefs.dart';
+import 'package:tablets/Repository/Snacker.dart';
 import 'package:tablets/Repository/dblink.dart';
 import 'package:tablets/sizer.dart';
 
-class BodyWidget extends StatelessWidget {
+import 'package:tablets/BlocsNProviders/TodoProvider.dart';
+
+import '../Monetisation/interstitialengine.dart';
+import '../Repository/timerBuilder.dart';
+import '../ShowCase/showcaser.dart';
+
+class BodyWidget2 extends StatefulWidget {
+  BodyWidget2();
+
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Stack(
-        children: [
-          Center(
-            child: const PlusSymbol(),
-          ),
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: getHeightByFactor(context, 0.1),
-                  ),
-                  Text(
-                    "Hi Rohan",
-                    style: TextStyle(fontSize: getWidthByFactor(context, 0.04)),
-                  ),
-                ],
-              ),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text(
-                  "All Caught Up ! Hurray",
-                  style: TextStyle(fontSize: getWidthByFactor(context, 0.04)),
-                ),
-              ]),
-              Row(
-                children: [
-                  const Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Card(
-                        color: Color(0x00000036),
-                        child: Text("No medication reminders"),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Row(children: [
-                SizedBox(
-                  height: getHeightByFactor(context, 0.5),
-                  width: getWidthByFactor(context, 0.8),
-                  child: Consumer<InventoryRecon>(
-                      builder: (context, inventoryRecon, _) {
-                    return ListView.builder(
-                        itemCount: inventoryRecon.currentInventory.length,
-                        itemBuilder: (context, position) {
-                          return Text(
-                              '$position ${inventoryRecon.currentInventory[position].medicine.Name}');
-                        });
-                  }),
-                )
-              ])
-            ],
-          ),
-          DraggableScrollableSheet(
-              minChildSize: 0.1,
-              maxChildSize: 1,
-              snapSizes: const [0.1, 1],
-              snap: true,
-              initialChildSize: 0.1,
-              builder: (context, controller) => Container(
-                    color: Colors.white,
-                    child: ListView.builder(
-                      controller: controller,
-                      itemCount: 1,
-                      itemBuilder: (context, index) {
-                        return const SheetUI();
-                      },
-                    ),
-                  ))
-        ],
-      ),
-    );
-  }
+  State<BodyWidget2> createState() => _BodyWidget2State();
 }
 
-// Widget ItemBuilder(context) {
-//   return SheetUI();
-// }
+class _BodyWidget2State extends State<BodyWidget2> {
+  List<TodoItem> pending = [];
 
-class SheetUI extends StatelessWidget {
-  const SheetUI({
-    Key? key,
-  }) : super(key: key);
+  late BannerAd _bannerAd;
+  // InterstitialAd? interstitialAd;
+
+  bool _isBannerAdReady = false;
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 1), () {
+      InventoryRecon().update(); //refresh inventory on app open
+    });
+    loadAds();
+  }
+
+  loadAds() {
+    _bannerAd = BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      request: const AdRequest(),
+      size: const AdSize(width: 200, height: 175),
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          _isBannerAdReady = false;
+          ad.dispose();
+        },
+      ),
+    );
+
+    // InterstitialAd.load(
+    //     adUnitId: AdHelper.interstitialAdUnitId,
+    //     request: AdRequest(),
+    //     adLoadCallback: InterstitialAdLoadCallback(
+    //       onAdLoaded: (InterstitialAd ad) {
+    //         // Keep a reference to the ad so you can show it later.
+    //         interstitialAd = ad;
+    //       },
+    //       onAdFailedToLoad: (LoadAdError error) {
+    //         print('InterstitialAd failed to load: $error');
+    //       },
+    //     ));
+    _bannerAd.load();
+    InterstitialEngine();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(
-          Icons.expand_more,
-          size: getWidthByFactor(context, 0.1),
-        ),
-        SizedBox(
-          height: getHeightByFactor(context, 0.015),
-        ),
-        const Text("Medication Reminders"),
-        Row(
+    return SafeArea(
+      child: Center(
+        child: Stack(
           children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: getHeightByFactor(context, 0.2),
-                  ),
-                  child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        boxShadow: [
-                          const BoxShadow(
-                            color: Color(0x264B4B3C),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(
-                            getWidthByFactor(context, 0.05)),
-                      ),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: getHeightByFactor(context, 0.05),
-                          ),
-                          Center(
-                              child: SizedBox(
-                                  height: getHeightByFactor(context, 0.08),
-                                  child: Image.asset(
-                                    'Images/settimer.png',
-                                    fit: BoxFit.scaleDown,
-                                  ))),
-                          Consumer<InventoryRecon>(
-                              builder: (context, _inventoryRecon, _) {
-                            List<InventoryItem> currentInv =
-                                _inventoryRecon.currentInventory;
-                            return currentInv.length == 0
-                                ? const Text(
-                                    'No Medication reminders . Set one by tapping \'+\'')
-                                : SizedBox(
-                                    width: getFullWidth(context),
-                                    height: getHeightByFactor(context, 0.3),
-                                    child: ListView.builder(
-                                        itemCount: currentInv.length,
-                                        itemBuilder: (context, index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: ExpansionTile(
-                                              collapsedBackgroundColor:
-                                                  Colors.blue,
-                                              title: Text(currentInv[index]
-                                                  .medicine
-                                                  .Name),
-                                              subtitle: Text(
-                                                  '${currentInv[index].medStock}'),
-                                              trailing:
-                                                  Icon(Icons.arrow_drop_down),
-                                              children: [
-                                                Text(
-                                                    '${currentInv[index].medicine.Name} ${currentInv[index].slist.scheduleList} )}')
-                                              ],
-                                            ),
-                                          );
-                                        }),
-                                  );
-                          }),
-                        ],
-                      )),
-                ),
-              ),
+            Positioned(
+              top: getHeightByFactor(context, 0.23),
+              left: getWidthByFactor(context, 0.57),
+              child: SizedBox(
+                  height: getHeightByFactor(context, 0.23),
+                  width: getHeightByFactor(context, 0.23),
+                  child: Image.asset(
+                    'Images/box1.png',
+                  )),
             ),
-          ],
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0x264B4B3C),
-              )
-            ],
-            borderRadius:
-                BorderRadius.circular(getWidthByFactor(context, 0.05)),
-          ),
-          child: Column(
-            children: [
-              Text("Medication Inventory"),
-              Consumer<InventoryRecon>(builder: (context, inventoryRecon, _) {
-                return SizedBox(
-                  height: getHeightByFactor(context, 0.45),
-                  width: getWidthByFactor(context, 1),
-                  child: ListView.builder(
-                      itemCount: inventoryRecon.currentInventory.length,
-                      itemBuilder: (context, position) {
-                        InventoryItem i =
-                            inventoryRecon.currentInventory[position];
-                        TextEditingController controller =
-                            TextEditingController();
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.all(Radius.circular(20)),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: getHeightByFactor(context, 0.1),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          "Hi ",
+                          style: TextStyle(
+                              fontSize: getWidthByFactor(context, 0.06),
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Showcase(
+                          key: ShowCaser.keys[3],
+                          title: 'Change Name',
+                          description: 'Tap here to edit your Name',
+                          child: Hero(
+                            tag: 'HeroName',
                             child: Container(
-                              color: tileColor(i.medStock, 10),
-                              width: getFullWidth(context),
-                              height: getHeightByFactor(context, 0.13),
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(15),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                          '${i.medicine.Name} ${i.medStock % 1 == 0 ? i.medStock.toInt() : i.medStock} ${i.medicine.Type.name}'),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Expanded(
-                                              child: TextField(
-                                            onSubmitted: (x) {
-                                              i.medStock +=
-                                                  int.parse(controller.text);
-                                              DatabaseLink.link
-                                                  .InsertInventoryItem(i);
-                                            },
-                                            keyboardType: TextInputType.number,
-                                            decoration: InputDecoration(
-                                              hintText: 'Restock Units',
-                                            ),
-                                            controller: controller,
-                                          )),
-                                          TextButton(
-                                            onPressed: () {
-                                              if (controller.text.isEmpty) {
-                                                controller.text = '0';
-                                              }
-                                              int num =
-                                                  int.parse(controller.text);
-                                              if (num >= 0) {
-                                                controller.text =
-                                                    (num + 1).toString();
-                                              }
-                                            },
-                                            child: Icon(Icons.add),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              if (controller.text.isEmpty) {
-                                                controller.text = '0';
-                                              }
-                                              int num =
-                                                  int.parse(controller.text);
-                                              if (num >= 1) {
-                                                controller.text =
-                                                    (num - 1).toString();
-                                              }
-                                            },
-                                            child: Icon(Icons.remove),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              inventoryRecon.update();
-                                              i.medStock +=
-                                                  int.parse(controller.text);
-                                              DatabaseLink.link
-                                                  .InsertInventoryItem(i);
-                                            },
-                                            child: const Text('Restock'),
-                                          )
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  changeNamePopup(context);
+                                },
+                                child: Text(
+                                  Stringy.StringUtils.capitalize(
+                                      SharedPref().obj!.getString('UserName')!,
+                                      allWords: true),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(
+                                          color: Colors.black,
+                                          fontSize:
+                                              getWidthByFactor(context, 0.06),
+                                          fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),
                           ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+                Consumer<TodoProvider>(
+                  builder: (context, _todoProvider, _) {
+                    return Column(
+                      children: [
+                        Text(
+                          _todoProvider.tds.Todos.isEmpty
+                              ? "No reminders set for today"
+                              : _todoProvider.allChecked
+                                  ? "All Caught Up ! Hurray"
+                                  : "Upcoming Medication Dosages",
+                          style: TextStyle(
+                              fontSize: getWidthByFactor(context, 0.045),
+                              fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(
+                          width: getFullWidth(context),
+                          height: getHeightByFactor(context, 0.35),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListView.builder(
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: _todoProvider.tds.Todos.length,
+                                itemBuilder: (context, index) {
+                                  TodoItem tdi = _todoProvider.tds.Todos[index];
+                                  return TodoListItem(tdi: tdi);
+                                }),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: getHeightByFactor(context, 0.1)),
+              child: DraggableScrollableSheet(
+                minChildSize: 0.5,
+                maxChildSize: 1,
+                initialChildSize: 0.5,
+                snap: true,
+                snapSizes: const [0.5, 1],
+                builder: (context, controller) => Container(
+                  color: Colors.white,
+                  height: getFullHeight(context),
+                  child: Consumer<InventoryRecon>(
+                      builder: (context, _inventoryRecon, child) {
+                        return Card(
+                          color: Colors.grey.shade100,
+                          child: Column(
+                            children: _inventoryRecon.currentInventory.isEmpty
+                                ? [
+                                    Expanded(
+                                      child: ListView(
+                                        controller: controller,
+                                        children: [
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                                top: getHeightByFactor(
+                                                    context, 0.1)),
+                                            child: const Center(
+                                                child: Text(
+                                                    'No medicines in inventory add one by tapping \'+\'')),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ]
+                                : [
+                                    const Icon(Icons.keyboard_arrow_up),
+                                    Expanded(
+                                      child: GridView(
+                                        controller: controller,
+                                        physics: const BouncingScrollPhysics(),
+                                        gridDelegate:
+                                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 2,
+                                                crossAxisSpacing: 4.0,
+                                                mainAxisSpacing: 4.0),
+                                        children: List.generate(
+                                          _inventoryRecon
+                                                  .currentInventory.length +
+                                              1,
+                                          (index) {
+                                            if (index > 1) {
+                                              InventoryItem current =
+                                                  _inventoryRecon
+                                                          .currentInventory[
+                                                      index - 1];
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: inventorytile(
+                                                  invIndex: index,
+                                                  item: current,
+                                                  context: context,
+                                                ),
+                                              );
+                                            } else {
+                                              if (index == 0) {
+                                                InventoryItem current =
+                                                    _inventoryRecon
+                                                            .currentInventory[
+                                                        index];
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: inventorytile(
+                                                    invIndex: index,
+                                                    item: current,
+                                                    context: context,
+                                                  ),
+                                                );
+                                              }
+                                              return child!;
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                          ),
                         );
-                      }),
-                );
-              }),
+                      },
+                      child: adtile(
+                        bannerAd: _bannerAd,
+                        bannerReady: _isBannerAdReady,
+                      )),
+                ),
+              ),
+            ),
+            Hero(
+              tag: 'Logo',
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  height: getHeightByFactor(context, 0.05),
+                  width: getHeightByFactor(context, 0.05),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const RiveAnimation.asset(
+                    'Images/logo (2).riv',
+                    controllers: [],
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.center,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: getWidthByFactor(context, 0.8),
+              child: Showcase(
+                radius: BorderRadius.circular(getHeightByFactor(context, 0.1)),
+                key: ShowCaser.keys[4],
+                title: 'All Done',
+                description:
+                    'Tap here to start this demonstartion again . Add a medicine and set your first medicine reminder now',
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                      elevation: MaterialStateProperty.all(0.0),
+                      backgroundColor: MaterialStateProperty.all(Colors.white),
+                      shape: MaterialStateProperty.all(const CircleBorder())),
+                  child: Icon(
+                    Icons.help,
+                    color: Theme.of(context).primaryColor,
+                    size: getHeightByFactor(context, 0.05),
+                  ),
+                  onPressed: () {
+                    ShowCaser.StartShowCase(context);
+                  },
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void changeNamePopup(BuildContext context) {
+    TextEditingController controller = TextEditingController();
+    controller.text = SharedPref().obj!.getString('UserName')!;
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(getHeightByFactor(context, 0.03))),
+            content: Container(
+              height: getHeightByFactor(context, 0.2),
+              width: getWidthByFactor(context, 0.5),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Edit Name',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: getHeightByFactor(context, 0.02))),
+                  TextField(
+                    maxLength: 20,
+                    controller: controller,
+                    decoration:
+                        const InputDecoration(helperText: 'Enter First Name'),
+                  ),
+                ],
+              ),
+              // decoration:
+              //     BoxDecoration(borderRadius: BorderRadius.circular(100)),
+            ),
+            actions: [
+              Center(
+                child: TextButton(
+                  onPressed: () async {
+                    if (controller.text.isEmpty) {
+                      ShowSnack(
+                          context, 2, SnackType.Warn, 'Name can\'t be empty');
+                    } else {
+                      SharedPreferences Prefs =
+                          await SharedPreferences.getInstance();
+                      await Prefs.setString('UserName', controller.text);
+                      setState(() {
+                        // widget.userName = controller.text;
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text('Change Name'),
+                ),
+              )
             ],
+          );
+        });
+  }
+}
+
+class TodoListItem extends StatefulWidget {
+  const TodoListItem({
+    Key? key,
+    required this.tdi,
+  }) : super(key: key);
+
+  final TodoItem tdi;
+
+  @override
+  State<TodoListItem> createState() => _TodoListItemState();
+}
+
+class _TodoListItemState extends State<TodoListItem>
+    with TickerProviderStateMixin {
+  late AnimationController controller;
+  // late AnimationController controller2;
+  late Animation animation;
+  // Color buttonColor = Colors.yellow.shade300;
+
+  @override
+  void initState() {
+    super.initState();
+    controller =
+        AnimationController(duration: const Duration(seconds: 1), vsync: this);
+
+    animation = ColorTween(begin: Colors.yellow.shade300, end: Colors.red)
+        .animate(controller);
+    controller.repeat();
+    controller.addListener(() {
+      setState(() {});
+    });
+    Future.delayed(const Duration(seconds: 10), () {
+      controller.reset();
+      controller.stop();
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Expanded(
+          flex: 3,
+          child: Checkbox(
+            onChanged: (x) {},
+            value: widget.tdi.done,
           ),
         ),
+        Expanded(
+          flex: 6,
+          child: Text(
+            '${widget.tdi.done ? '' : widget.tdi.s.hour < DateTime.now().hour ? 'Missed!-' : ''}${widget.tdi.med.Name} ${widget.tdi.s.dosage == widget.tdi.s.dosage.toInt() ? widget.tdi.s.dosage.toInt() : widget.tdi.s.dosage} ${Shorten(widget.tdi.med.Type)} @ ${TodoItem.to12Hour(widget.tdi.s.hour, widget.tdi.s.minute)}',
+            style: widget.tdi.done == true
+                ? const TextStyle(decoration: TextDecoration.lineThrough)
+                : DateTime.now().hour > widget.tdi.s.hour
+                    ? const TextStyle(
+                        color: Colors.redAccent, fontWeight: FontWeight.bold)
+                    : null,
+            textAlign: TextAlign.left,
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: EarlierThanNow(widget.tdi.s.hour, widget.tdi.s.minute) &&
+                  !widget.tdi.done
+              ? TextButton(
+                  style: ButtonStyle(
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            getHeightByFactor(context, 0.1)),
+                        side: BorderSide(
+                            color: Colors.grey.shade400,
+                            width: getHeightByFactor(context, 0.001)))),
+                    backgroundColor: MaterialStateProperty.all(animation.value),
+                  ),
+                  child: const Text('Taken'),
+                  onPressed: () async {
+                    controller.reset();
+                    controller.stop();
+                    int _success = await DatabaseLink.ConsumeMedicine(
+                        widget.tdi.med.Id!,
+                        widget.tdi.med.Name,
+                        widget.tdi.s.dosage,
+                        widget.tdi.s.Id!);
+                    if (_success == 1) {
+                      InventoryRecon().update();
+                      TodoProvider().updateFetch();
+                    } else {
+                      ShowSnack(context, 2, SnackType.Warn,
+                          'Not Enough Stocks please update inventory or shop online');
+                      Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                              transitionDuration:
+                                  const Duration(milliseconds: 350),
+                              pageBuilder: (_, __, ___) => MedDetails(
+                                    InvIndex: InventoryRecon()
+                                        .getInvIndex(widget.tdi.med.Name),
+                                  )));
+                    }
+                  },
+                )
+              : const Text(''),
+        )
       ],
     );
   }
@@ -305,7 +509,7 @@ Color tileColor(double stock, int i) {
   } else if (stock > i) {
     return Colors.green.shade400;
   } else {
-    return Colors.yellowAccent;
+    return Colors.orange;
   }
 }
 
