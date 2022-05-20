@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:basic_utils/basic_utils.dart' as Stringy;
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -7,8 +8,10 @@ import 'package:rive/rive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:tablets/BlocsNProviders/InventoryProvider.dart';
+import 'package:tablets/Components/animated_name_widget.dart';
 import 'package:tablets/Components/inventorytile.dart';
 import 'package:tablets/Components/meddetails.dart';
+import 'package:tablets/Components/todo_list_item.dart';
 import 'package:tablets/Models/Medicine.dart';
 import 'package:tablets/Models/TodoItem.dart';
 import 'package:tablets/Models/inventoryItem.dart';
@@ -120,28 +123,8 @@ class _BodyWidget2State extends State<BodyWidget2> {
                           key: ShowCaser.keys[3],
                           title: 'Change Name',
                           description: 'Tap here to edit your Name',
-                          child: Hero(
-                            tag: 'HeroName',
-                            child: Container(
-                              child: GestureDetector(
-                                onTap: () {
-                                  changeNamePopup(context);
-                                },
-                                child: Text(
-                                  Stringy.StringUtils.capitalize(
-                                      SharedPref().obj!.getString('UserName')!,
-                                      allWords: true),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(
-                                          color: Colors.black,
-                                          fontSize:
-                                              getWidthByFactor(context, 0.06),
-                                          fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
+                          child: Container(
+                            child: AnimatedNameWidget(),
                           ),
                         )
                       ],
@@ -327,198 +310,5 @@ class _BodyWidget2State extends State<BodyWidget2> {
         ),
       ),
     );
-  }
-
-  void changeNamePopup(BuildContext context) {
-    TextEditingController controller = TextEditingController();
-    controller.text = SharedPref().obj!.getString('UserName')!;
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(getHeightByFactor(context, 0.03))),
-            content: Container(
-              height: getHeightByFactor(context, 0.2),
-              width: getWidthByFactor(context, 0.5),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Edit Name',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: getHeightByFactor(context, 0.02))),
-                  TextField(
-                    maxLength: 20,
-                    controller: controller,
-                    decoration:
-                        const InputDecoration(helperText: 'Enter First Name'),
-                  ),
-                ],
-              ),
-              // decoration:
-              //     BoxDecoration(borderRadius: BorderRadius.circular(100)),
-            ),
-            actions: [
-              Center(
-                child: TextButton(
-                  onPressed: () async {
-                    if (controller.text.isEmpty) {
-                      ShowSnack(
-                          context, 2, SnackType.Warn, 'Name can\'t be empty');
-                    } else {
-                      SharedPreferences Prefs =
-                          await SharedPreferences.getInstance();
-                      await Prefs.setString('UserName', controller.text);
-                      setState(() {
-                        // widget.userName = controller.text;
-                      });
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: Text('Change Name'),
-                ),
-              )
-            ],
-          );
-        });
-  }
-}
-
-class TodoListItem extends StatefulWidget {
-  const TodoListItem({
-    Key? key,
-    required this.tdi,
-  }) : super(key: key);
-
-  final TodoItem tdi;
-
-  @override
-  State<TodoListItem> createState() => _TodoListItemState();
-}
-
-class _TodoListItemState extends State<TodoListItem>
-    with TickerProviderStateMixin {
-  late AnimationController controller;
-  // late AnimationController controller2;
-  late Animation animation;
-  // Color buttonColor = Colors.yellow.shade300;
-
-  @override
-  void initState() {
-    super.initState();
-    controller =
-        AnimationController(duration: const Duration(seconds: 1), vsync: this);
-
-    animation = ColorTween(begin: Colors.yellow.shade300, end: Colors.red)
-        .animate(controller);
-    controller.repeat();
-    controller.addListener(() {
-      setState(() {});
-    });
-    Future.delayed(const Duration(seconds: 10), () {
-      controller.reset();
-      controller.stop();
-      setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          flex: 3,
-          child: Checkbox(
-            onChanged: (x) {},
-            value: widget.tdi.done,
-          ),
-        ),
-        Expanded(
-          flex: 6,
-          child: Text(
-            '${widget.tdi.done ? '' : widget.tdi.s.hour < DateTime.now().hour ? 'Missed!-' : ''}${widget.tdi.med.Name} ${widget.tdi.s.dosage == widget.tdi.s.dosage.toInt() ? widget.tdi.s.dosage.toInt() : widget.tdi.s.dosage} ${Shorten(widget.tdi.med.Type)} @ ${TodoItem.to12Hour(widget.tdi.s.hour, widget.tdi.s.minute)}',
-            style: widget.tdi.done == true
-                ? const TextStyle(decoration: TextDecoration.lineThrough)
-                : DateTime.now().hour > widget.tdi.s.hour
-                    ? const TextStyle(
-                        color: Colors.redAccent, fontWeight: FontWeight.bold)
-                    : null,
-            textAlign: TextAlign.left,
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: EarlierThanNow(widget.tdi.s.hour, widget.tdi.s.minute) &&
-                  !widget.tdi.done
-              ? TextButton(
-                  style: ButtonStyle(
-                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            getHeightByFactor(context, 0.1)),
-                        side: BorderSide(
-                            color: Colors.grey.shade400,
-                            width: getHeightByFactor(context, 0.001)))),
-                    backgroundColor: MaterialStateProperty.all(animation.value),
-                  ),
-                  child: const Text('Taken'),
-                  onPressed: () async {
-                    controller.reset();
-                    controller.stop();
-                    int _success = await DatabaseLink.ConsumeMedicine(
-                        widget.tdi.med.Id!,
-                        widget.tdi.med.Name,
-                        widget.tdi.s.dosage,
-                        widget.tdi.s.Id!);
-                    if (_success == 1) {
-                      InventoryRecon().update();
-                      TodoProvider().updateFetch();
-                    } else {
-                      ShowSnack(context, 2, SnackType.Warn,
-                          'Not Enough Stocks please update inventory or shop online');
-                      Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                              transitionDuration:
-                                  const Duration(milliseconds: 350),
-                              pageBuilder: (_, __, ___) => MedDetails(
-                                    InvIndex: InventoryRecon()
-                                        .getInvIndex(widget.tdi.med.Name),
-                                  )));
-                    }
-                  },
-                )
-              : const Text(''),
-        )
-      ],
-    );
-  }
-}
-
-Color tileColor(double stock, int i) {
-  if (stock == 0) {
-    return Colors.redAccent;
-  } else if (stock > i) {
-    return Colors.green.shade400;
-  } else {
-    return Colors.orange;
-  }
-}
-
-String getScheduleType(Schedule s) {
-  if (s.day != 0) {
-    return 'Weekly';
-  } else if (s.date != 0) {
-    return 'Monthly';
-  } else {
-    return 'Daily';
   }
 }
