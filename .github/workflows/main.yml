@@ -49,7 +49,8 @@ jobs:
 #       with:
 #         path: version1.txt
     - name: Update version in YAML
-      run: sed -i 's/99.99.99+99/${{ 5 }}+${{ github.run_number }}/g' pubspec.yaml
+      run: sed -i 's/99.99.99+99/5.0.0/g' pubspec.yaml
+#         run: sed -i 's/99.99.99+99/${{ 5 }}+${{ github.run_number }}/g' pubspec.yaml
     - name: Update KeyStore password in gradle properties
       run: sed -i 's/#{KEYSTORE_PASS}#/${{ secrets.KEYSTORE_PASS }}/g' android/app/key.properties
     - name: Update KeyStore key password in gradle properties
