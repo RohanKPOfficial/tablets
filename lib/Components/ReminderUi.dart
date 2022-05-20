@@ -7,6 +7,7 @@ import 'package:tablets/sizer.dart';
 
 Widget ReminderUiBuilder(BuildContext context, String selected,
     int numReminders, ScheduleList schedules, int MedId) {
+  ScrollController cont = ScrollController();
   if (selected == 'Daily') {
     DateTime initTime = DateTime.now().add(const Duration(minutes: 1));
     schedules.Modify([
@@ -80,9 +81,11 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                       BorderRadius.circular(getHeightByFactor(context, 0.03))),
               height: getHeightByFactor(context, 0.25),
               child: Scrollbar(
+                controller: cont,
                 isAlwaysShown: true,
                 child: Consumer<ReminderTimeList>(
                   builder: (context, reminderTimeList, _) => ListView.builder(
+                    controller: cont,
                     itemCount: reminderTimeList.myList.length,
                     itemBuilder: (context, index) => ListTile(
                       title: Text(
@@ -124,9 +127,6 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 (index) => TimeOfDay.fromDateTime(
                     DateTime.now().add(Duration(minutes: index + 1))))),
           ),
-          // ChangeNotifierProvider(
-          //   create: (_) => SelectedDays(7),
-          // )
         ],
         child: Column(
           children: [
@@ -216,8 +216,10 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
               height: getHeightByFactor(context, 0.15),
               child: Scrollbar(
                 isAlwaysShown: true,
+                controller: cont,
                 child: Consumer<ReminderTimeList>(
                   builder: (context, reminderTimeList, _) => ListView.builder(
+                    controller: cont,
                     itemCount: reminderTimeList.myList.length,
                     itemBuilder: (context, index) => ListTile(
                       title: Text(
@@ -336,9 +338,11 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                       BorderRadius.circular(getHeightByFactor(context, 0.03))),
               height: getHeightByFactor(context, 0.15),
               child: Scrollbar(
+                controller: cont,
                 isAlwaysShown: true,
                 child: Consumer<ReminderTimeList>(
                   builder: (context, reminderTimeList, _) => ListView.builder(
+                    controller: cont,
                     itemCount: reminderTimeList.myList.length,
                     itemBuilder: (context, index) => ListTile(
                       title: Text(

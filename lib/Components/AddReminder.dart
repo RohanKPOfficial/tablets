@@ -52,117 +52,105 @@ class _AddReminderState extends State<AddReminder> {
           return Container(
             child: ListView(
               children: [
-                Expanded(
-                  child: Text(
-                    'Medicine',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                Text(
+                  'Medicine',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.all(getHeightByFactor(context, 0.01)),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(
-                                getWidthByFactor(context, 0.06))))),
-                    value: selectedMedicine.Name,
-                    icon: const Icon(Icons.arrow_drop_down),
-                    elevation: 16,
-                    style: const TextStyle(color: Colors.deepPurple),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedMedicine = widget.meds
-                            .firstWhere((element) => element.Name == newValue);
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                      contentPadding:
+                          EdgeInsets.all(getHeightByFactor(context, 0.01)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(
+                              getWidthByFactor(context, 0.06))))),
+                  value: selectedMedicine.Name,
+                  icon: const Icon(Icons.arrow_drop_down),
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.deepPurple),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedMedicine = widget.meds
+                          .firstWhere((element) => element.Name == newValue);
 
-                        dropDownUi = ReminderUiBuilder(context, dropdownValue,
-                            numReminders, sList, selectedMedicine.Id!);
-                      });
-                    },
-                    items: widget.meds
-                        .map<DropdownMenuItem<String>>((Medicine value) {
-                      return DropdownMenuItem<String>(
-                        value: value.Name,
-                        child: Text(value.Name),
-                      );
-                    }).toList(),
-                  ),
+                      dropDownUi = ReminderUiBuilder(context, dropdownValue,
+                          numReminders, sList, selectedMedicine.Id!);
+                    });
+                  },
+                  items: widget.meds
+                      .map<DropdownMenuItem<String>>((Medicine value) {
+                    return DropdownMenuItem<String>(
+                      value: value.Name,
+                      child: Text(value.Name),
+                    );
+                  }).toList(),
                 ),
-                Expanded(
-                  child: Text(
-                    'Dosage',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                Text(
+                  'Dosage',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                          child: TextField(
-                        controller: controller,
-                      )),
-                      Text(Shorten(selectedMedicine.Type)),
-                      TextButton(
-                          style: ElevatedButton.styleFrom(
-                              shape: const CircleBorder(),
-                              primary: Colors.grey.shade100),
-                          child: const Icon(Icons.remove),
-                          onPressed: () {
-                            int curr = int.parse(controller.text);
-                            if (curr > 1) {
-                              controller.text = (curr - 1).toString();
-                            }
-                          }),
-                      TextButton(
-                          style: ElevatedButton.styleFrom(
-                              shape: const CircleBorder(),
-                              primary: Colors.grey.shade100),
-                          child: const Icon(Icons.add),
-                          onPressed: () {
-                            int curr = int.parse(controller.text);
-                            if (curr < 10) {
-                              controller.text = (curr + 1).toString();
-                            }
-                          }),
-                    ],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                        child: TextField(
+                      controller: controller,
+                    )),
+                    Text(Shorten(selectedMedicine.Type)),
+                    TextButton(
+                        style: ElevatedButton.styleFrom(
+                            shape: const CircleBorder(),
+                            primary: Colors.grey.shade100),
+                        child: const Icon(Icons.remove),
+                        onPressed: () {
+                          int curr = int.parse(controller.text);
+                          if (curr > 1) {
+                            controller.text = (curr - 1).toString();
+                          }
+                        }),
+                    TextButton(
+                        style: ElevatedButton.styleFrom(
+                            shape: const CircleBorder(),
+                            primary: Colors.grey.shade100),
+                        child: const Icon(Icons.add),
+                        onPressed: () {
+                          int curr = int.parse(controller.text);
+                          if (curr < 10) {
+                            controller.text = (curr + 1).toString();
+                          }
+                        }),
+                  ],
                 ),
-                Expanded(
-                  child: Text(
-                    'Schedule',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                Text(
+                  'Schedule',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.all(getHeightByFactor(context, 0.01)),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(
-                                getWidthByFactor(context, 0.06))))),
-                    value: dropdownValue,
-                    icon: const Icon(Icons.arrow_drop_down),
-                    elevation: 16,
-                    style: const TextStyle(color: Colors.deepPurple),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        dropdownValue = newValue!;
-                        dropDownUi = ReminderUiBuilder(context, dropdownValue,
-                            numReminders, sList, selectedMedicine.Id!);
-                      });
-                    },
-                    items: <String>['Daily', 'Weekly', 'Monthly']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                      contentPadding:
+                          EdgeInsets.all(getHeightByFactor(context, 0.01)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(
+                              getWidthByFactor(context, 0.06))))),
+                  value: dropdownValue,
+                  icon: const Icon(Icons.arrow_drop_down),
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.deepPurple),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValue = newValue!;
+                      dropDownUi = ReminderUiBuilder(context, dropdownValue,
+                          numReminders, sList, selectedMedicine.Id!);
+                    });
+                  },
+                  items: <String>['Daily', 'Weekly', 'Monthly']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
                 ),
-                Flexible(child: dropDownUi),
+                dropDownUi,
               ],
             ),
           );
