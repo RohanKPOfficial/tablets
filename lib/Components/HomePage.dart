@@ -53,8 +53,8 @@ class _MyHomePageState extends State<MyHomePage> {
         description:
             'Set a Daily Weekly or Monthly reminder for any medicines in the inventory. Tap Anywhere  to continue.',
         child: SizedBox(
-          height: getHeightByFactor(context, 0.08),
-          width: getHeightByFactor(context, 0.08),
+          height: getWidthByFactor(context, 0.17),
+          width: getWidthByFactor(context, 0.17),
           child: FittedBox(
             child: FloatingActionButton(
               heroTag: null,
@@ -84,63 +84,49 @@ class _MyHomePageState extends State<MyHomePage> {
         notchMargin: 5,
         color: Colors.blue,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Padding(
-              padding: EdgeInsets.only(
-                  left: 8,
-                  right: getWidthByFactor(context, 0.1),
-                  top: 8,
-                  bottom: 12),
-              child: Showcase(
-                key: ShowCaser.keys[0],
-                showArrow: true,
-                title: 'Tap to buy medicines online',
-                description:
-                    'Get medicines delivered at your doorstep through NetMeds.Tap anywhere to continue.',
-                child: FloatingActionButton(
-                  elevation: 0,
-                  heroTag: null,
-                  tooltip: 'Shop for Medicines',
-                  onPressed: () {
-                    InterstitialEngine().showAd();
-                    LaunchPartenerSite();
-                  },
-                  child: Icon(
-                    Icons.shopping_bag,
-                    size: getWidthByFactor(context, 0.1),
-                  ),
-                ), //Shop Medds Button
-              ),
+            Showcase(
+              key: ShowCaser.keys[0],
+              showArrow: true,
+              title: 'Tap to buy medicines online',
+              description:
+                  'Get medicines delivered at your doorstep through NetMeds.Tap anywhere to continue.',
+              child: FloatingActionButton(
+                elevation: 0,
+                heroTag: null,
+                tooltip: 'Shop for Medicines',
+                onPressed: () {
+                  InterstitialEngine().showAd();
+                  LaunchPartenerSite();
+                },
+                child: Icon(
+                  Icons.shopping_bag,
+                  size: getWidthByFactor(context, 0.1),
+                ),
+              ), //Shop Medds Button
             ), //Shop MEds Button
-            Padding(
-              padding: EdgeInsets.only(
-                  left: 10,
-                  right: getWidthByFactor(context, 0.43),
-                  top: 8,
-                  bottom: 12),
-              child: Showcase(
-                key: ShowCaser.keys[2],
-                title: 'Tap to add a Medicine',
-                description:
-                    'Adds a medicine to your medicine inventory.Tap this button to continue',
-                child: FloatingActionButton(
-                    tooltip: 'Add a Medicine',
-                    elevation: 0,
-                    heroTag: null,
-                    child: Icon(
-                      Icons.medication,
-                      size: getWidthByFactor(context, 0.1),
-                    ),
-                    onPressed: () {
-                      TextEditingController controller =
-                          TextEditingController();
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return const AddMeds();
-                          });
-                    }),
+            Showcase(
+              key: ShowCaser.keys[2],
+              title: 'Tap to add a Medicine',
+              description:
+                  'Adds a medicine to your medicine inventory.Tap this button to continue',
+              child: FloatingActionButton(
+                tooltip: 'Add a Medicine',
+                elevation: 0,
+                heroTag: null,
+                child: Icon(
+                  Icons.medication,
+                  size: getWidthByFactor(context, 0.1),
+                ),
+                onPressed: () {
+                  TextEditingController controller = TextEditingController();
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return const AddMeds();
+                      });
+                },
               ),
             ), //Add Medicines Button
           ],

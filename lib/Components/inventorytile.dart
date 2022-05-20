@@ -78,11 +78,12 @@ class _inventorytileState extends State<inventorytile> {
                       tag: 'MedName${widget.invIndex}',
                       child: Text(
                         '${widget.item.medicine?.Name}',
+                        textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                             color: Colors.black,
-                            fontSize: getHeightByFactor(context, 0.02),
+                            fontSize: getWidthByFactor(context, 0.045),
                             fontWeight: FontWeight.bold),
                       )),
                   Hero(
@@ -97,8 +98,9 @@ class _inventorytileState extends State<inventorytile> {
                   ),
                   Text(
                     '${widget.item.medStock % 1 == 0 ? widget.item.medStock.toInt() : widget.item.medStock} ${Shorten(widget.item.medicine?.Type ?? Medtype.Tablets)} inStock',
-                    style:
-                        TextStyle(color: tileColor(widget.item.medStock, 10)),
+                    style: TextStyle(
+                        color: tileColor(widget.item.medStock, 10),
+                        fontSize: getWidthByFactor(context, 0.04)),
                   ),
                 ],
               ),

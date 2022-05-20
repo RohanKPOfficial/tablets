@@ -95,10 +95,10 @@ class _BodyWidget2State extends State<BodyWidget2> {
           children: [
             Positioned(
               top: getHeightByFactor(context, 0.23),
-              left: getWidthByFactor(context, 0.57),
+              left: getWidthByFactor(context, 0.5),
               child: SizedBox(
                   height: getHeightByFactor(context, 0.23),
-                  width: getHeightByFactor(context, 0.23),
+                  width: getWidthByFactor(context, 0.7),
                   child: Image.asset(
                     'Images/box1.png',
                   )),
@@ -126,7 +126,7 @@ class _BodyWidget2State extends State<BodyWidget2> {
                           child: Container(
                             child: AnimatedNameWidget(),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ],

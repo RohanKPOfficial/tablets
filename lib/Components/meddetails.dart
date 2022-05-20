@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
@@ -16,6 +18,7 @@ import 'package:tablets/Repository/misc.dart';
 import 'package:tablets/sizer.dart';
 
 import '../BlocsNProviders/TodoProvider.dart';
+import 'editStocks.dart';
 
 class MedDetails extends StatefulWidget {
   late int InvIndex;
@@ -32,9 +35,10 @@ class MedDetails extends StatefulWidget {
 }
 
 class _MedDetailsState extends State<MedDetails> {
+  String errorText = '';
+  TextEditingController controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    TextEditingController controller = TextEditingController();
     return Consumer2<InventoryRecon, TodoProvider>(
         builder: (context, _inventoryRecon, _todoProvider, _) {
       InventoryItem i = _inventoryRecon.currentInventory[widget.InvIndex];
@@ -77,38 +81,58 @@ class _MedDetailsState extends State<MedDetails> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(top: getHeightByFactor(context, 0.1)),
+                padding: EdgeInsets.only(top: getHeightByFactor(context, 0.05)),
                 child: Container(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Hero(
-                            tag: 'MedName${widget.InvIndex}',
-                            child: Text(
-                              '${i.medicine?.Name} ${Shorten(i.medicine?.Type ?? Medtype.Tablets)}',
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: getHeightByFactor(context, 0.03),
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Hero(
-                        tag: 'MedIcon${widget.InvIndex}',
-                        child: Icon(
-                          Medicine.medIcon(
-                            i.medicine?.Type,
-                          ),
-                          size: getWidthByFactor(context, 0.25),
-                          color: Colors.white,
-                        ),
-                      ),
                       Expanded(
+                          flex: 1,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Center(
+                                  child: Hero(
+                                    tag: 'MedIcon${widget.InvIndex}',
+                                    child: Icon(
+                                      Medicine.medIcon(
+                                        i.medicine?.Type,
+                                      ),
+                                      size: getWidthByFactor(context, 0.2),
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: Hero(
+                                        tag: 'MedName${widget.InvIndex}',
+                                        child: Text(
+                                          '${i.medicine?.Name} ${Shorten(i.medicine?.Type ?? Medtype.Tablets)}',
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: getWidthByFactor(
+                                                  context, 0.06),
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )),
+                      Expanded(
+                        flex: 4,
                         child: Container(
                           margin:
                               EdgeInsets.all(getWidthByFactor(context, 0.02)),
@@ -118,130 +142,240 @@ class _MedDetailsState extends State<MedDetails> {
                                   getWidthByFactor(context, 0.1))),
                           child: Column(
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
+                              Expanded(
+                                flex: 3,
                                 child: SizedBox(
-                                  // color: tileColor(i.medStock, 10),
                                   width: getFullWidth(context),
                                   height: getHeightByFactor(context, 0.13),
                                   child: Center(
                                     child: Padding(
-                                      padding: const EdgeInsets.all(15),
+                                      padding: EdgeInsets.all(
+                                          getHeightByFactor(context, 0.01)),
                                       child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Text(
-                                            '${i.medStock % 1 == 0 ? i.medStock.toInt() : i.medStock} ${i.medicine?.Type.name} In Stock',
-                                            style: TextStyle(
-                                                color:
-                                                    tileColor(i.medStock, 10),
-                                                fontSize: getHeightByFactor(
-                                                    context, 0.02),
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Expanded(
-                                                child: TextField(
-                                                  onSubmitted: (x) async {
-                                                    i.medStock += int.parse(
-                                                        controller.text);
-                                                    DatabaseLink.link
-                                                        .updateStock(
-                                                            i.Id!, i.medStock);
-                                                    _inventoryRecon.update();
+                                          Expanded(
+                                            flex: 1,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  '${i.medStock % 1 == 0 ? i.medStock.toInt() : i.medStock} ${i.medicine?.Type.name} In Stock',
+                                                  style: TextStyle(
+                                                      textBaseline: TextBaseline
+                                                          .alphabetic,
+                                                      color: tileColor(
+                                                          i.medStock, 10),
+                                                      fontSize:
+                                                          getWidthByFactor(
+                                                              context, 0.05),
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    showDialog(
+                                                        context: context,
+                                                        builder: (context) {
+                                                          return EditStocks(
+                                                              InvId: i.Id!,
+                                                              MedName: i
+                                                                  .medicine!
+                                                                  .Name,
+                                                              currentString:
+                                                                  '${i.medStock % 1 == 0 ? i.medStock.toInt() : i.medStock} ${i.medicine?.Type.name} In Stock',
+                                                              curr: i.medStock);
+                                                        });
                                                   },
-                                                  keyboardType:
-                                                      TextInputType.number,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    hintText: 'Restock Units',
+                                                  child: Container(
+                                                    child: Icon(Icons.edit),
+                                                    margin: EdgeInsets.only(
+                                                        left: getWidthByFactor(
+                                                            context, 0.04)),
                                                   ),
-                                                  controller: controller,
-                                                ),
-                                              ),
-                                              TextButton(
-                                                  style: ElevatedButton.styleFrom(
-                                                      shape:
-                                                          const CircleBorder(),
-                                                      primary:
-                                                          Colors.grey.shade100),
-                                                  child: const Icon(Icons.add),
-                                                  onPressed: () {
-                                                    if (controller
-                                                        .text.isEmpty) {
-                                                      controller.text = '0';
-                                                    }
-                                                    int num = int.parse(
-                                                        controller.text);
-                                                    if (num >= 0) {
-                                                      controller.text =
-                                                          (num + 1).toString();
-                                                    }
-                                                  }),
-                                              TextButton(
-                                                  style: ElevatedButton.styleFrom(
-                                                      shape:
-                                                          const CircleBorder(),
-                                                      primary:
-                                                          Colors.grey.shade100),
-                                                  child:
-                                                      const Icon(Icons.remove),
-                                                  onPressed: () {
-                                                    if (controller
-                                                        .text.isEmpty) {
-                                                      controller.text = '0';
-                                                    }
-                                                    int num = int.parse(
-                                                        controller.text);
-                                                    if (num >= 1) {
-                                                      controller.text =
-                                                          (num - 1).toString();
-                                                    }
-                                                  }),
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.grey.shade100,
-                                                    borderRadius: BorderRadius
-                                                        .all(Radius.circular(
-                                                            getWidthByFactor(
-                                                                context,
-                                                                0.1)))),
-                                                child: TextButton(
-                                                  onPressed: () async {
-                                                    i.medStock += int.parse(
-                                                        controller.text);
-                                                    DatabaseLink.link
-                                                        .updateStock(
-                                                            i.Id!, i.medStock);
-                                                    _inventoryRecon.update();
-                                                  },
-                                                  child: const Text('Restock'),
-                                                ),
-                                              )
-                                            ],
+                                                )
+                                              ],
+                                            ),
                                           ),
+                                          Expanded(
+                                              flex: 3,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Expanded(
+                                                    child: TextField(
+                                                      onSubmitted: (x) async {
+                                                        if (int.parse(x) > 0) {
+                                                          i.medStock +=
+                                                              int.parse(
+                                                                  controller
+                                                                      .text);
+                                                          await DatabaseLink
+                                                              .link
+                                                              .updateStock(
+                                                                  i.Id!,
+                                                                  i.medStock);
+                                                          _inventoryRecon
+                                                              .update();
+                                                        } else {
+                                                          setState(() {
+                                                            errorText =
+                                                                'Cant\'t be negative';
+                                                          });
+                                                        }
+                                                      },
+                                                      style: TextStyle(
+                                                          fontSize:
+                                                              getWidthByFactor(
+                                                                  context,
+                                                                  0.05)),
+                                                      keyboardType: TextInputType
+                                                          .numberWithOptions(
+                                                              signed: false),
+                                                      decoration:
+                                                          InputDecoration(
+                                                        errorText:
+                                                            errorText == ''
+                                                                ? null
+                                                                : errorText,
+                                                        hintStyle: TextStyle(
+                                                            fontSize:
+                                                                getWidthByFactor(
+                                                                    context,
+                                                                    0.045)),
+                                                        hintText:
+                                                            'Restock Units',
+                                                      ),
+                                                      controller: controller,
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              shape:
+                                                                  const CircleBorder(),
+                                                              primary: Colors
+                                                                  .grey
+                                                                  .shade100),
+                                                      child: Icon(
+                                                        Icons.add,
+                                                        size: getWidthByFactor(
+                                                            context, 0.05),
+                                                      ),
+                                                      onPressed: () {
+                                                        if (controller
+                                                            .text.isEmpty) {
+                                                          controller.text = '0';
+                                                        }
+                                                        int num = int.parse(
+                                                            controller.text);
+                                                        if (num >= 0) {
+                                                          controller.text =
+                                                              (num + 1)
+                                                                  .toString();
+                                                        }
+                                                      }),
+                                                  TextButton(
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              shape:
+                                                                  const CircleBorder(),
+                                                              primary: Colors
+                                                                  .grey
+                                                                  .shade100),
+                                                      child: Icon(
+                                                        Icons.remove,
+                                                        size: getWidthByFactor(
+                                                            context, 0.05),
+                                                      ),
+                                                      onPressed: () {
+                                                        if (controller
+                                                            .text.isEmpty) {
+                                                          controller.text = '0';
+                                                        }
+                                                        int num = int.parse(
+                                                            controller.text);
+                                                        if (num >= 1) {
+                                                          controller.text =
+                                                              (num - 1)
+                                                                  .toString();
+                                                        }
+                                                      }),
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                        color: Colors
+                                                            .grey.shade100,
+                                                        borderRadius: BorderRadius
+                                                            .all(Radius.circular(
+                                                                getWidthByFactor(
+                                                                    context,
+                                                                    0.1)))),
+                                                    child: TextButton(
+                                                      onPressed: () async {
+                                                        if (int.parse(controller
+                                                                .text) >
+                                                            0) {
+                                                          i.medStock +=
+                                                              int.parse(
+                                                                  controller
+                                                                      .text);
+                                                          await DatabaseLink
+                                                              .link
+                                                              .updateStock(
+                                                                  i.Id!,
+                                                                  i.medStock);
+                                                          _inventoryRecon
+                                                              .update();
+                                                        } else {
+                                                          setState(() {
+                                                            errorText =
+                                                                'Can\'t be negative';
+                                                          });
+                                                        }
+                                                      },
+                                                      child: Text(
+                                                        'Restock',
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                              getWidthByFactor(
+                                                                  context,
+                                                                  0.04),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              )),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                              Text(
-                                'Scheduled Reminders',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: getWidthByFactor(context, 0.04)),
+                              Flexible(
+                                flex: 2,
+                                child: Text(
+                                  'Scheduled Reminders',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize:
+                                          getWidthByFactor(context, 0.04)),
+                                ),
                               ),
                               Expanded(
+                                flex: 7,
                                 // height: getHeightByFactor(context, 0.35),
                                 // width: getFullWidth(context),
                                 child: i.slist.scheduleList.isEmpty
                                     ? Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
-                                            'No reminders scheduled for ${i.medicine?.Name}'),
+                                          'No reminders scheduled for ${i.medicine?.Name}',
+                                          textAlign: TextAlign.center,
+                                        ),
                                       )
                                     : ListView(
                                         children: List.generate(
@@ -306,8 +440,8 @@ class _MedDetailsState extends State<MedDetails> {
           ),
         ),
         floatingActionButton: SizedBox(
-          height: getHeightByFactor(context, 0.08),
-          width: getHeightByFactor(context, 0.08),
+          height: getWidthByFactor(context, 0.17),
+          width: getWidthByFactor(context, 0.17),
           child: Consumer2<InventoryRecon, TodoProvider>(
               builder: (context, _invRecon, _tdProv, _) {
             return FittedBox(
@@ -344,49 +478,38 @@ class _MedDetailsState extends State<MedDetails> {
           color: Colors.blue,
           child: Row(
             children: [
-              Padding(
-                  padding: const EdgeInsets.only(
-                      left: 8, right: 8, top: 8, bottom: 20),
-                  child: Tooltip(
-                    message: 'Order ${i.medicine!.Name} online',
-                    child: FloatingActionButton(
-                      elevation: 0,
-                      heroTag: null,
-                      onPressed: () {
-                        InterstitialEngine().showAd();
-                        LaunchPartenerSite(i.medicine!.Name);
-                      },
-                      child: Icon(
-                        Icons.shopping_bag,
-                        size: getWidthByFactor(context, 0.1),
-                      ),
-                    ),
-                  )),
-              Padding(
-                  padding: const EdgeInsets.only(
-                      left: 8, right: 8, top: 8, bottom: 20),
-                  child: Tooltip(
-                    message: 'Order ${i.medicine!.Name} online',
-                    child: FloatingActionButton(
-                      elevation: 0,
-                      heroTag: null,
-                      onPressed: () {
-                        showDialog(
-                            context: context,
-                            builder: (context) {
-                              return ConfirmDelete(
-                                Id: i.medicine!.Id!,
-                                MedName: i.medicine!.Name,
-                              );
-                            });
-                      },
-                      tooltip: 'Delete ${i.medicine?.Name}',
-                      child: Icon(
-                        Icons.delete_forever,
-                        size: getWidthByFactor(context, 0.1),
-                      ),
-                    ),
-                  )),
+              FloatingActionButton(
+                tooltip: 'Order ${i.medicine!.Name} online',
+                elevation: 0,
+                heroTag: null,
+                onPressed: () {
+                  InterstitialEngine().showAd();
+                  LaunchPartenerSite(i.medicine!.Name);
+                },
+                child: Icon(
+                  Icons.shopping_bag,
+                  size: getWidthByFactor(context, 0.1),
+                ),
+              ),
+              FloatingActionButton(
+                elevation: 0,
+                heroTag: null,
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return ConfirmDelete(
+                          Id: i.medicine!.Id!,
+                          MedName: i.medicine!.Name,
+                        );
+                      });
+                },
+                tooltip: 'Delete ${i.medicine?.Name}',
+                child: Icon(
+                  Icons.delete_forever,
+                  size: getWidthByFactor(context, 0.1),
+                ),
+              ),
             ],
           ),
         ),

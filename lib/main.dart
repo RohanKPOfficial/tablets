@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
           return widget!;
         },
         title: 'Tablets',
-        theme: ThemeData(),
+        theme: ThemeData(fontFamily: 'Ubuntu'),
         home: const Splasher(),
         navigatorKey: navkey,
       ),

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:tablets/BlocsNProviders/SelectedDays.dart';
 import 'package:tablets/Models/reminderList.dart';
@@ -74,8 +73,12 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 ),
               );
             }),
-            SizedBox(
-              height: getHeightByFactor(context, 0.3),
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius:
+                      BorderRadius.circular(getHeightByFactor(context, 0.03))),
+              height: getHeightByFactor(context, 0.25),
               child: Scrollbar(
                 isAlwaysShown: true,
                 child: Consumer<ReminderTimeList>(
@@ -205,8 +208,12 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 ),
               );
             }),
-            SizedBox(
-              height: getHeightByFactor(context, 0.2),
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius:
+                      BorderRadius.circular(getHeightByFactor(context, 0.03))),
+              height: getHeightByFactor(context, 0.15),
               child: Scrollbar(
                 isAlwaysShown: true,
                 child: Consumer<ReminderTimeList>(
@@ -322,8 +329,12 @@ Widget ReminderUiBuilder(BuildContext context, String selected,
                 ),
               );
             }),
-            SizedBox(
-              height: getHeightByFactor(context, 0.2),
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius:
+                      BorderRadius.circular(getHeightByFactor(context, 0.03))),
+              height: getHeightByFactor(context, 0.15),
               child: Scrollbar(
                 isAlwaysShown: true,
                 child: Consumer<ReminderTimeList>(

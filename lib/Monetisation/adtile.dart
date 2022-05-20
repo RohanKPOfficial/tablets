@@ -38,10 +38,10 @@ class _adtileState extends State<adtile> {
                     fit: BoxFit.contain,
                   ),
                   Positioned(
-                      top: getHeightByFactor(context, 0.01),
+                      top: getWidthByFactor(context, 0.02),
                       child: Text('  Forgot Buying medicines?')),
                   Positioned(
-                      top: getHeightByFactor(context, 0.18),
+                      top: getWidthByFactor(context, 0.39),
                       child: Text('  Tap here to Order Online'))
                 ]),
               ),
