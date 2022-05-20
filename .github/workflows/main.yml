@@ -92,4 +92,3 @@ jobs:
         releaseFile: app-release.aab
         track: internal
         whatsNewDirectory: distribution/whatsnew
-view rawandroid-playstore-release.yml hosted with ❤ by GitHub
