@@ -9,7 +9,6 @@ class NameScreen extends StatefulWidget {
   TextEditingController cont = TextEditingController();
 
   NameScreen({Key? key}) : super(key: key);
-  bool flying = false;
   bool InputError = false;
   String text = '';
   @override
@@ -37,7 +36,6 @@ class _NameScreenState extends State<NameScreen> with TickerProviderStateMixin {
         SharedPreferences Prefs = await SharedPreferences.getInstance();
         Prefs.setString('UserName', Name);
         setState(() {
-          widget.flying = true;
           widget.text = widget.cont.text;
         });
         // timeDilation = 20;
@@ -67,25 +65,6 @@ class _NameScreenState extends State<NameScreen> with TickerProviderStateMixin {
                 left: getWidthByFactor(context, _walkAnim.value),
                 top: getHeightByFactor(context, 0.06),
                 child: Image.asset('Images/transpWalk.gif')),
-            Positioned(
-              left: getWidthByFactor(context, 0.2),
-              top: getHeightByFactor(context, 0.655),
-              child: Visibility(
-                visible: widget.flying,
-                child: Hero(
-                  tag: 'HeroName',
-                  child: Container(
-                    child: Text(
-                      widget.text,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Colors.black,
-                          fontSize: getWidthByFactor(context, 0.045),
-                          fontWeight: FontWeight.normal),
-                    ),
-                  ),
-                ),
-              ),
-            ),
             Hero(
               tag: 'Logo',
               child: Padding(
@@ -144,7 +123,6 @@ class _NameScreenState extends State<NameScreen> with TickerProviderStateMixin {
                                     onSubmitted: (String x) {
                                       redirCheck(widget.cont);
                                       setState(() {
-                                        widget.flying = true;
                                         widget.text = widget.cont.text;
                                       });
                                       FocusManager.instance.primaryFocus

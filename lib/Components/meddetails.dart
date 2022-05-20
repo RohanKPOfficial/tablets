@@ -12,6 +12,7 @@ import 'package:tablets/Models/inventoryItem.dart';
 import 'package:tablets/Models/reminderList.dart';
 import 'package:tablets/Monetisation/interstitialengine.dart';
 import 'package:tablets/Repository/dblink.dart';
+import 'package:tablets/Repository/misc.dart';
 import 'package:tablets/sizer.dart';
 
 import '../BlocsNProviders/TodoProvider.dart';
@@ -373,7 +374,10 @@ class _MedDetailsState extends State<MedDetails> {
                         showDialog(
                             context: context,
                             builder: (context) {
-                              return ConfirmDelete(Id: i.medicine!.Id!);
+                              return ConfirmDelete(
+                                Id: i.medicine!.Id!,
+                                MedName: i.medicine!.Name,
+                              );
                             });
                       },
                       tooltip: 'Delete ${i.medicine?.Name}',
