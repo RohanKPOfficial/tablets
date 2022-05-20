@@ -19,6 +19,7 @@ jobs:
       uses: gittools/actions/gitversion/setup@v0.9.3
       with:
           versionSpec: '5.2.x'
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true    
     - name: Use GitVersion
       id: gitversion
       uses: gittools/actions/gitversion/execute@v0.9.3
@@ -27,6 +28,7 @@ jobs:
     - name: Upload version.txt
       uses: actions/upload-artifact@v2
       with:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true  
         name: gitversion
         path: version.txt
   build:
@@ -38,6 +40,7 @@ jobs:
     - name: Get version.txt
       uses: actions/download-artifact@v2
       with:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true  
         name: gitversion
     - name: Create new file without newline char from version.txt
       run: tr -d '\n' < version.txt > version1.txt
